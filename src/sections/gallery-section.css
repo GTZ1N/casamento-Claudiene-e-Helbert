@@ -1,0 +1,7 @@
+.gallery-section {
+  background: var(--color-nude);
+}
+
+.gallery-section .section-inner {
+  margin-bottom: var(--space-lg);
+}

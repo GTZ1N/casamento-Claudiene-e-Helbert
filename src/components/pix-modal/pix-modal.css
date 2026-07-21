@@ -1,0 +1,133 @@
+.pix-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+  background: rgba(16, 19, 26, 0.6);
+  backdrop-filter: blur(3px);
+  animation: pix-modal-fade-in 0.35s var(--ease-premium);
+}
+
+@keyframes pix-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pix-modal {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: var(--space-md);
+  text-align: center;
+  background: var(--color-nude);
+  border-radius: 8px;
+  box-shadow: 0 30px 70px rgba(16, 19, 26, 0.4);
+  animation: pix-modal-rise 0.4s var(--ease-premium);
+}
+
+@keyframes pix-modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pix-modal-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink-soft);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.25s var(--ease-premium), background-color 0.25s var(--ease-premium);
+}
+
+.pix-modal-close svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.pix-modal-close:hover {
+  opacity: 1;
+  background: rgba(182, 146, 87, 0.15);
+}
+
+.pix-modal-title {
+  margin: 0.3rem 0 0.5rem;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1.4rem;
+  color: var(--color-ink-soft);
+}
+
+.pix-modal-note {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--color-ink-soft);
+  opacity: 0.8;
+}
+
+.pix-modal-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+  margin: 0 auto var(--space-sm);
+  width: fit-content;
+  background: #fff5f6;
+  border: 1px solid rgba(182, 146, 87, 0.35);
+  border-radius: 8px;
+}
+
+.pix-modal-copy {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1rem;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-champagne);
+  background: var(--color-gold-strong);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.3s var(--ease-premium);
+}
+
+.pix-modal-copy:hover {
+  background: var(--color-gold-soft);
+}
+
+.pix-modal-receiver {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  opacity: 0.6;
+}

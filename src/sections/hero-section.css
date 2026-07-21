@@ -1,0 +1,33 @@
+.hero-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88vh;
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-md);
+  overflow: hidden;
+  background: var(--color-champagne);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hero-mark {
+  position: absolute;
+  z-index: 1;
+  top: 6%;
+  left: 6%;
+  width: min(34vw, 170px);
+  height: auto;
+  /* Fades the source photo's flat background out, leaving only the
+     monogram + wreath so it blends into any section background. */
+  mask-image: radial-gradient(circle, black 58%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle, black 58%, transparent 80%);
+  filter: drop-shadow(0 10px 30px rgba(20, 16, 10, 0.18));
+}

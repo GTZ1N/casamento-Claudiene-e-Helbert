@@ -1,0 +1,63 @@
+.photo-moment {
+  padding: var(--space-lg) var(--space-sm);
+  background: var(--color-nude);
+}
+
+.photo-moment-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.photo-moment-frame {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  aspect-ratio: 16 / 10;
+  box-shadow: 0 24px 60px rgba(20, 16, 10, 0.26);
+}
+
+.photo-moment-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-moment-frame--contain {
+  aspect-ratio: auto;
+  background: transparent;
+  box-shadow: none;
+}
+
+.photo-moment-frame--contain img {
+  position: static;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.photo-moment-quote {
+  max-width: 560px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.5rem);
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+@media (max-width: 600px) {
+  .photo-moment-frame {
+    aspect-ratio: 4 / 5;
+  }
+}

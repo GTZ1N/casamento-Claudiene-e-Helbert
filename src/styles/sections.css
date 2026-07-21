@@ -1,0 +1,35 @@
+.section {
+  position: relative;
+  padding: var(--space-xl) var(--space-sm);
+}
+
+.section-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-eyebrow {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.8rem;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-gold-strong);
+}
+
+.section-title {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-script);
+  font-size: clamp(2.4rem, 1.9rem + 2.5vw, 3.6rem);
+  color: var(--color-ink-soft);
+  line-height: 1.1;
+}
+
+.section-divider {
+  width: 2.5rem;
+  height: 1px;
+  margin: var(--space-sm) auto;
+  background: var(--color-gold-soft);
+}

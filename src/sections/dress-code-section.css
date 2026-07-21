@@ -1,0 +1,26 @@
+.dress-code-section {
+  background: var(--color-champagne);
+}
+
+.dress-code-note {
+  max-width: 480px;
+  margin: var(--space-sm) auto 0;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+.dress-code-note strong {
+  color: var(--color-gold-strong);
+  font-weight: 600;
+}
+
+.dress-code-thanks {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--color-ink-soft);
+  opacity: 0.8;
+}

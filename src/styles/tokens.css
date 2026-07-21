@@ -1,0 +1,38 @@
+:root {
+  /* Paleta — extraída do site oficial do casal em noivos.casar.com/claudiene-e-helbert
+     (tema "chumbo"): branco/rosa-pálido/azul-pálido de fundo, rosa como cor de
+     destaque, azul-ardósia escuro como texto principal. */
+  --color-nude: #fff5f6;
+  --color-champagne: #f2f7fc;
+  --color-rose: #e583a2;
+  --color-warm-beige: #dde7f1;
+  --color-gold-soft: #ffc3c9;
+  --color-gold-strong: #e583a2;
+  --color-olive-light: #5d758d;
+  --color-baby-pink: #ffc3c9;
+  --color-ink: #171c21;
+  --color-ink-soft: #404951;
+
+  /* Cena escura (abertura do envelope) — variação escura da mesma família
+     azul-ardósia, não mais marrom/oliva. */
+  --scene-bg-deep: #10131a;
+  --scene-bg-mid: #1b222c;
+  --scene-shadow: rgba(16, 19, 26, 0.55);
+
+  /* Tipografia */
+  --font-script: 'Parisienne', cursive;
+  --font-serif: 'Cormorant Garamond', 'Times New Roman', serif;
+
+  --tracking-wide: 0.14em;
+  --tracking-wider: 0.22em;
+
+  /* Espaçamento fluido */
+  --space-xs: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  --space-sm: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  --space-md: clamp(2rem, 1.6rem + 2vw, 3rem);
+  --space-lg: clamp(3.5rem, 2.8rem + 3.5vw, 6rem);
+  --space-xl: clamp(5rem, 4rem + 5vw, 9rem);
+
+  /* Curva de easing padrão para transições CSS simples */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+}

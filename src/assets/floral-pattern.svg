@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <g id="bloom">
+      <ellipse cx="0" cy="-15" rx="9" ry="15" fill="#e583a2" />
+      <ellipse cx="0" cy="-15" rx="9" ry="15" fill="#e583a2" transform="rotate(72)" />
+      <ellipse cx="0" cy="-15" rx="9" ry="15" fill="#e583a2" transform="rotate(144)" />
+      <ellipse cx="0" cy="-15" rx="9" ry="15" fill="#e583a2" transform="rotate(216)" />
+      <ellipse cx="0" cy="-15" rx="9" ry="15" fill="#e583a2" transform="rotate(288)" />
+      <circle cx="0" cy="0" r="6" fill="#ffc3c9" />
+    </g>
+    <g id="bud">
+      <ellipse cx="0" cy="0" rx="7" ry="11" fill="#ffc3c9" />
+    </g>
+    <g id="leaf">
+      <path d="M0 0 Q 10 -14 0 -28 Q -10 -14 0 0 Z" fill="#8fa3a8" />
+    </g>
+  </defs>
+
+  <g opacity="0.9">
+    <use href="#leaf" x="70" y="120" transform="rotate(20 70 120)" />
+    <use href="#bloom" x="70" y="90" transform="scale(1.1)" />
+    <use href="#leaf" x="70" y="90" transform="rotate(-30 70 90)" />
+
+    <use href="#bud" x="130" y="60" transform="rotate(15 130 60)" />
+    <use href="#leaf" x="120" y="70" transform="rotate(60 120 70)" />
+
+    <use href="#bloom" x="260" y="150" transform="scale(0.85)" />
+    <use href="#leaf" x="260" y="180" transform="rotate(200 260 180)" />
+
+    <use href="#bud" x="330" y="90" />
+    <use href="#leaf" x="335" y="110" transform="rotate(140 335 110)" />
+
+    <use href="#bloom" x="380" y="260" transform="scale(1.2)" />
+    <use href="#leaf" x="380" y="300" transform="rotate(10 380 300)" />
+
+    <use href="#bud" x="40" y="300" transform="rotate(-40 40 300)" />
+    <use href="#leaf" x="55" y="320" transform="rotate(90 55 320)" />
+
+    <use href="#bloom" x="150" y="360" transform="scale(0.95)" />
+    <use href="#leaf" x="150" y="395" />
+
+    <use href="#bud" x="230" y="410" />
+    <use href="#bloom" x="420" y="410" transform="scale(0.8)" />
+    <use href="#leaf" x="420" y="440" transform="rotate(-60 420 440)" />
+  </g>
+</svg>

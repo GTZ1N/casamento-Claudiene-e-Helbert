@@ -1,0 +1,65 @@
+.verse-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(165deg, var(--color-olive-light) 0%, var(--color-warm-beige) 60%, var(--color-rose) 100%);
+}
+
+.verse-floral-backdrop {
+  position: absolute;
+  inset: -10%;
+  background-repeat: repeat;
+  background-size: 340px;
+  filter: blur(7px);
+  transform: scale(1.05);
+  opacity: 0.85;
+}
+
+.verse-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(165deg, rgba(16, 19, 26, 0.5) 0%, rgba(16, 19, 26, 0.35) 60%, rgba(16, 19, 26, 0.55) 100%);
+}
+
+.verse-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--space-sm);
+}
+
+.verse-ornament {
+  font-size: 1.4rem;
+  color: rgba(255, 245, 246, 0.75);
+  margin-bottom: var(--space-sm);
+}
+
+.verse-quote {
+  max-width: 620px;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.4rem, 1.1rem + 1.6vw, 2.1rem);
+  line-height: 1.5;
+  color: var(--color-champagne);
+  text-shadow: 0 2px 18px rgba(16, 19, 26, 0.35);
+}
+
+.verse-reference {
+  display: block;
+  margin-top: var(--space-sm);
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-champagne);
+  opacity: 0.8;
+}

@@ -1,0 +1,88 @@
+.book-photo-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+}
+
+.book-photo-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 16, 10, 0.55) 0%, rgba(20, 16, 10, 0.35) 45%, rgba(20, 16, 10, 0.65) 100%);
+}
+
+.book-photo-page .monogram {
+  font-family: var(--font-serif);
+  color: var(--color-champagne);
+}
+
+.book-photo-page .monogram-amp {
+  color: var(--color-rose);
+}
+
+.book-page-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 2.2rem 1.4rem;
+  text-align: center;
+  color: var(--color-champagne);
+}
+
+.book-eyebrow {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.7rem;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-champagne);
+  opacity: 0.85;
+}
+
+.book-names {
+  margin: 0.2rem 0;
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 1.8rem + 2vw, 2.8rem);
+  line-height: 1.05;
+  color: var(--color-champagne);
+}
+
+.book-divider {
+  width: 2rem;
+  height: 1px;
+  margin: 0.5rem 0;
+  background: rgba(243, 231, 208, 0.5);
+}
+
+.book-date {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+}
+
+.book-time,
+.book-venue {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.book-closing-note {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+}
