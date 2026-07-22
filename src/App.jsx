@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import FlipBook from './components/flipbook/FlipBook';
 import PhotoMoment from './components/photo-moment/PhotoMoment';
 import HeroSection from './sections/HeroSection';
@@ -13,6 +14,16 @@ import FooterSection from './sections/FooterSection';
 import GiftsPage from './pages/gifts-page/GiftsPage';
 import { useLenis } from './hooks/useLenis';
 import './styles/sections.css';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function HomePage() {
   useLenis();
@@ -52,10 +63,13 @@ function HomePage() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/presentes" element={<GiftsPage />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/presentes" element={<GiftsPage />} />
+      </Routes>
+    </>
   );
 }
 

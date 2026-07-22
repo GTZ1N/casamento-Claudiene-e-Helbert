@@ -60,7 +60,7 @@ export default function FlipBook() {
           flippingTime={550}
           startZIndex={1}
           autoSize
-          mobileScrollSupport
+          mobileScrollSupport={false}
           clickEventForward
           useMouseEvents
           swipeDistance={20}
