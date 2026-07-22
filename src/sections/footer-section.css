@@ -5,7 +5,7 @@
   gap: var(--space-xs);
   text-align: center;
   padding-bottom: var(--space-xl);
-  background: linear-gradient(180deg, var(--color-nude) 0%, var(--scene-bg-mid) 130%);
+  background: var(--color-champagne);
 }
 
 .footer-note {
@@ -20,6 +20,7 @@
   margin: 0;
   font-family: var(--font-serif);
   font-size: 0.85rem;
+  font-weight: 600;
   letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
   color: var(--color-gold-strong);
@@ -32,7 +33,7 @@
   font-style: italic;
   font-size: 0.95rem;
   letter-spacing: var(--tracking-wide);
-  color: var(--color-champagne);
+  color: var(--color-ink);
   background: var(--color-gold-strong);
   border: none;
   border-radius: 999px;

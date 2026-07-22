@@ -5,9 +5,14 @@ const formatPrice = (value) =>
 
 export default function GiftCard({ gift, onGift, loading, error }) {
   return (
-    <article className="gift-card">
+    <article className={`gift-card${gift.featured ? ' gift-card--featured' : ''}`}>
+      {gift.featured && <span className="gift-card-badge">presente especial</span>}
       <div className="gift-card-photo">
-        <img src={`/gifts/${gift.id}.jpg`} alt={gift.name} loading="lazy" />
+        {gift.icon ? (
+          <span className="gift-card-icon" aria-hidden="true">{gift.icon}</span>
+        ) : (
+          <img src={`/gifts/${gift.id}.jpg`} alt={gift.name} loading="lazy" />
+        )}
       </div>
       <p className="gift-card-name">{gift.name}</p>
       <p className="gift-card-brand">{gift.brand}</p>

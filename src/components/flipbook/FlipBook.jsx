@@ -38,8 +38,9 @@ export default function FlipBook() {
   return (
     <div className="flipbook-stage">
       <div className="flipbook-backdrop" />
-      <div className="flipbook-frame" data-lenis-prevent>
+      <div className="flipbook-frame-wrap">
         <SoundToggle src="/audio/still-the-one.mp3" />
+        <div className="flipbook-frame" data-lenis-prevent>
         <HTMLFlipBook
           ref={bookRef}
           className="flipbook-html"
@@ -84,6 +85,7 @@ export default function FlipBook() {
             puxe aqui
           </span>
         )}
+        </div>
       </div>
       <div className="flipbook-dots">
         {Array.from({ length: PAGE_COUNT }).map((_, i) => (

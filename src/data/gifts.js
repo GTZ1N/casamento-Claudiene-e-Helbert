@@ -8,9 +8,19 @@ export const GIFT_CATEGORIES = {
   COZINHA: 'cozinha',
   ELETRO: 'eletro',
   CASA_SMART: 'casa-smart',
+  DIVERSAO: 'diversao',
 };
 
 export const gifts = [
+  // Itens "de brincadeira" — em destaque, sempre primeiro na lista. Sem foto
+  // de produto real, usam um ícone/emoji.
+  { id: 'gift-61', name: 'Grana pra viagem de lua de mel', brand: 'Contribuição carinhosa', price: 1000, category: GIFT_CATEGORIES.DIVERSAO, icon: '✈️', featured: true },
+  { id: 'gift-62', name: 'Ajuda com a primeira conta de luz', brand: 'Contribuição carinhosa', price: 500, category: GIFT_CATEGORIES.DIVERSAO, icon: '💡', featured: true },
+  { id: 'gift-63', name: 'Churrasco de inauguração da casa nova', brand: 'Contribuição carinhosa', price: 300, category: GIFT_CATEGORIES.DIVERSAO, icon: '🍖', featured: true },
+  { id: 'gift-64', name: 'Pizza do primeiro fim de semana casados', brand: 'Contribuição carinhosa', price: 150, category: GIFT_CATEGORIES.DIVERSAO, icon: '🍕', featured: true },
+  { id: 'gift-65', name: 'Assinatura de streaming pra maratonar juntos', brand: 'Contribuição carinhosa', price: 125, category: GIFT_CATEGORIES.DIVERSAO, icon: '🍿', featured: true },
+  { id: 'gift-66', name: 'Café da manhã de casal recém-casado', brand: 'Contribuição carinhosa', price: 175, category: GIFT_CATEGORIES.DIVERSAO, icon: '☕', featured: true },
+
   { id: 'gift-01', name: 'Kit Cobre Leito Casal Colcha 3 Peças Boutis Estampada Dupla Face', brand: 'Bem Casa', price: 91.9, category: GIFT_CATEGORIES.ENXOVAL },
   { id: 'gift-02', name: 'Cobre Leito Colcha Camili Super King 3 pçs Matelado Dupla Face', brand: 'Bem Me Quer Enxovais', price: 140.9, category: GIFT_CATEGORIES.ENXOVAL },
   { id: 'gift-03', name: 'Cobertor Casal Queen Alaska Sherpa e Manta Flanel (Marinho)', brand: 'Bia Enxovais', price: 189.89, category: GIFT_CATEGORIES.ENXOVAL },

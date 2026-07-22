@@ -65,7 +65,7 @@
 
 .details-map-link:hover {
   background: var(--color-gold-soft);
-  color: var(--color-champagne);
+  color: var(--color-ink);
 }
 
 @media (max-width: 720px) {

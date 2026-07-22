@@ -29,7 +29,7 @@ export default function SoundToggle({ src }) {
 
   useEffect(() => {
     const audio = new Audio(src);
-    audio.preload = 'none';
+    audio.preload = 'auto';
     // Native `loop` always restarts at 0 — we want the loop to restart at
     // LOOP_START instead, so loop is handled manually via `ended`.
     const onEnded = () => {
@@ -38,8 +38,25 @@ export default function SoundToggle({ src }) {
     };
     audio.addEventListener('ended', onEnded);
     audioRef.current = audio;
+
+    const startPlaying = () => {
+      audio.currentTime = LOOP_START;
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    };
+
+    // Most browsers block audible autoplay before any user gesture. Try
+    // immediately anyway, then fall back to starting on the very first tap
+    // or click anywhere on the page, so the couple's guests hear it with
+    // sound on right away instead of having to find the mute button.
+    startPlaying();
+    const onFirstGesture = () => startPlaying();
+    document.addEventListener('pointerdown', onFirstGesture, { once: true });
+    document.addEventListener('keydown', onFirstGesture, { once: true });
+
     return () => {
       audio.removeEventListener('ended', onEnded);
+      document.removeEventListener('pointerdown', onFirstGesture);
+      document.removeEventListener('keydown', onFirstGesture);
       audio.pause();
       audioRef.current = null;
     };

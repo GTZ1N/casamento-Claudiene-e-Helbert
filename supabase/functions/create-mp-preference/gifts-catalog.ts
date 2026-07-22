@@ -64,4 +64,10 @@ export const GIFTS_CATALOG: Record<string, { name: string; price: number }> = {
   'gift-58': { name: 'Cooktop 5 Bocas a Gás Supreme com Queimador Tripla Chama Mesa de Vidro', price: 689.9 },
   'gift-59': { name: 'Panela de Pressão Elétrica 5L Pratic Cook', price: 449.99 },
   'gift-60': { name: 'Air Fryer Oven 12L 4 em 1 1800W', price: 799.9 },
+  'gift-61': { name: 'Grana pra viagem de lua de mel', price: 1000 },
+  'gift-62': { name: 'Ajuda com a primeira conta de luz', price: 500 },
+  'gift-63': { name: 'Churrasco de inauguração da casa nova', price: 300 },
+  'gift-64': { name: 'Pizza do primeiro fim de semana casados', price: 150 },
+  'gift-65': { name: 'Assinatura de streaming pra maratonar juntos', price: 125 },
+  'gift-66': { name: 'Café da manhã de casal recém-casado', price: 175 },
 };
