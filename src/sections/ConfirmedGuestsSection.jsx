@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
-import { listGuests, subscribeGuests } from '../lib/guests';
+import {
+  adminAddGuest,
+  deleteGuest,
+  listGuests,
+  subscribeGuests,
+  updateGuestName,
+} from '../lib/guests';
 import { isRsvpOpen, setRsvpOpen, subscribeRsvpStatus } from '../lib/rsvpStatus';
 import './confirmed-guests-section.css';
 
@@ -10,6 +16,16 @@ export default function ConfirmedGuestsSection() {
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [rsvpOpen, setRsvpOpenState] = useState(null); // null = checking | true | false
   const [toggling, setToggling] = useState(false);
+
+  const [newName, setNewName] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState(null);
+
+  const [editingId, setEditingId] = useState(null);
+  const [editingName, setEditingName] = useState('');
+  const [savingId, setSavingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [rowError, setRowError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +75,58 @@ export default function ConfirmedGuestsSection() {
     }
   };
 
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      await adminAddGuest(newName);
+      setNewName('');
+    } catch (err) {
+      setAddError(err.message || 'Não foi possível adicionar agora.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const startEdit = (guest) => {
+    setRowError(null);
+    setEditingId(guest.id);
+    setEditingName(guest.full_name);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingName('');
+  };
+
+  const saveEdit = async (id) => {
+    setSavingId(id);
+    setRowError(null);
+    try {
+      await updateGuestName(id, editingName);
+      setEditingId(null);
+      setEditingName('');
+    } catch (err) {
+      setRowError(err.message || 'Não foi possível salvar agora.');
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    setRowError(null);
+    try {
+      await deleteGuest(id);
+    } catch (err) {
+      setRowError(err.message || 'Não foi possível excluir agora.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (status === 'error') return null;
 
   return (
@@ -83,6 +151,20 @@ export default function ConfirmedGuestsSection() {
             </button>
           </div>
         )}
+
+        <form className="confirmed-admin-add" onSubmit={handleAdd}>
+          <input
+            type="text"
+            className="confirmed-admin-input"
+            placeholder="Adicionar convidado"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
+          <button type="submit" className="confirmed-admin-btn" disabled={adding}>
+            {adding ? 'adicionando…' : '+ adicionar'}
+          </button>
+        </form>
+        {addError && <p className="confirmed-admin-error">{addError}</p>}
       </div>
 
       {status === 'ready' && guests.length === 0 && (
@@ -91,12 +173,62 @@ export default function ConfirmedGuestsSection() {
         </p>
       )}
 
+      {rowError && <p className="confirmed-admin-error confirmed-reveal">{rowError}</p>}
+
       {guests.length > 0 && (
         <ul className="confirmed-list confirmed-reveal">
           {guests.map((guest) => (
             <li className="confirmed-item" key={guest.id}>
-              <span className="confirmed-check" aria-hidden="true">&#10003;</span>
-              {guest.full_name}
+              {editingId === guest.id ? (
+                <>
+                  <input
+                    type="text"
+                    className="confirmed-admin-input confirmed-admin-input--inline"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    className="confirmed-row-btn"
+                    onClick={() => saveEdit(guest.id)}
+                    disabled={savingId === guest.id}
+                    aria-label="Salvar"
+                  >
+                    {savingId === guest.id ? '…' : '✓'}
+                  </button>
+                  <button
+                    type="button"
+                    className="confirmed-row-btn"
+                    onClick={cancelEdit}
+                    aria-label="Cancelar"
+                  >
+                    ✕
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="confirmed-check" aria-hidden="true">&#10003;</span>
+                  <span className="confirmed-name">{guest.full_name}</span>
+                  <button
+                    type="button"
+                    className="confirmed-row-btn"
+                    onClick={() => startEdit(guest)}
+                    aria-label="Editar"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    type="button"
+                    className="confirmed-row-btn"
+                    onClick={() => handleDelete(guest.id)}
+                    disabled={deletingId === guest.id}
+                    aria-label="Excluir"
+                  >
+                    {deletingId === guest.id ? '…' : '🗑'}
+                  </button>
+                </>
+              )}
             </li>
           ))}
         </ul>

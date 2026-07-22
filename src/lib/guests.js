@@ -86,3 +86,61 @@ export async function addGuests(names) {
   notifyGuestsChanged();
   return { inserted: data, duplicates };
 }
+
+// Admin-only additions (from the private /lista-ch-confirmados page) skip
+// the isRsvpOpen() gate above — the bride can still add a guest by hand
+// even while public confirmations are closed.
+export async function adminAddGuest(name) {
+  if (!isSupabaseConfigured) {
+    throw new Error('A confirmação de presença ainda está sendo preparada. Volte em breve!');
+  }
+
+  const cleanName = name.trim();
+  if (!cleanName) return null;
+
+  const normalized = normalizeName(cleanName);
+  const supabase = await getSupabase();
+  const { data, error } = await supabase
+    .from('guests')
+    .insert({ full_name: cleanName, full_name_normalized: normalized })
+    .select('id, full_name')
+    .single();
+
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Esse nome já consta na lista.');
+    }
+    throw error;
+  }
+
+  notifyGuestsChanged();
+  return data;
+}
+
+export async function updateGuestName(id, name) {
+  const cleanName = name.trim();
+  if (!cleanName) throw new Error('O nome não pode ficar vazio.');
+
+  const supabase = await getSupabase();
+  const { error } = await supabase
+    .from('guests')
+    .update({ full_name: cleanName, full_name_normalized: normalizeName(cleanName) })
+    .eq('id', id);
+
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Esse nome já consta na lista.');
+    }
+    throw error;
+  }
+
+  notifyGuestsChanged();
+}
+
+export async function deleteGuest(id) {
+  const supabase = await getSupabase();
+  const { error } = await supabase.from('guests').delete().eq('id', id);
+  if (error) throw error;
+
+  notifyGuestsChanged();
+}

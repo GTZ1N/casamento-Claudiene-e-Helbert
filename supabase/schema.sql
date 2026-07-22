@@ -22,6 +22,19 @@ create policy "Anyone can confirm attendance"
   on guests for insert
   with check (true);
 
+-- Editar/excluir convidados é uma ação da página admin (login em
+-- /lista-ch-confirmados), mas — mesmo modelo de confiança do resto deste
+-- arquivo — a policy do banco não distingue admin de visitante; a proteção
+-- real é o login da página, não isto.
+create policy "Guests can be updated from the invite site"
+  on guests for update
+  using (true)
+  with check (true);
+
+create policy "Guests can be deleted from the invite site"
+  on guests for delete
+  using (true);
+
 -- Liga/desliga a confirmação de presença. Única linha (id = 1), controlada
 -- pela noiva na página privada /lista-ch-confirmados. Sem sistema de login
 -- nesse site (mesmo modelo de confiança das policies acima), então a
