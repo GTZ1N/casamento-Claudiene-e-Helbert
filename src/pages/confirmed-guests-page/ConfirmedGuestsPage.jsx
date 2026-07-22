@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ConfirmedGuestsSection from '../../sections/ConfirmedGuestsSection';
+import ConfirmedChildrenSection from '../../sections/ConfirmedChildrenSection';
 import AdminLogin from '../../components/admin-login/AdminLogin';
 import { clearAdminAuthenticated, isAdminAuthenticated } from '../../lib/adminAuth';
 import './confirmed-guests-page.css';
@@ -14,6 +15,7 @@ export default function ConfirmedGuestsPage() {
   return (
     <main>
       <ConfirmedGuestsSection />
+      <ConfirmedChildrenSection />
       <button
         type="button"
         className="admin-logout"

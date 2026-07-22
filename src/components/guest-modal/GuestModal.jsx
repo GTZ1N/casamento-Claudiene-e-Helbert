@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { addGuests } from '../../lib/guests';
+import { addChildrenForGuest, MAX_CHILDREN_PER_GUEST } from '../../lib/children';
 import { isRsvpOpen } from '../../lib/rsvpStatus';
 import './guest-modal.css';
 
@@ -24,8 +25,14 @@ function markAsConfirmed() {
   localStorage.setItem(CONFIRMED_STORAGE_KEY, 'true');
 }
 
+function emptyChild() {
+  return { name: '', age: '' };
+}
+
 export default function GuestModal({ open, onClose }) {
   const [name, setName] = useState('');
+  const [hasChildren, setHasChildren] = useState(false);
+  const [children, setChildren] = useState([emptyChild()]);
   const [status, setStatus] = useState('idle'); // idle | submitting | done
   const [error, setError] = useState(null);
   const [rsvpOpen, setRsvpOpen] = useState(null); // null = checking | true | false
@@ -35,6 +42,8 @@ export default function GuestModal({ open, onClose }) {
   useEffect(() => {
     if (!open) return undefined;
     setName('');
+    setHasChildren(false);
+    setChildren([emptyChild()]);
     setStatus(hasAlreadyConfirmed() ? 'done' : 'idle');
     setError(null);
     setRsvpOpen(null);
@@ -57,12 +66,42 @@ export default function GuestModal({ open, onClose }) {
 
   if (!open) return null;
 
+  const updateChildField = (index, field, value) => {
+    setChildren((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
+  };
+
+  const addChildField = () =>
+    setChildren((prev) => (prev.length < MAX_CHILDREN_PER_GUEST ? [...prev, emptyChild()] : prev));
+
+  const removeChildField = (index) =>
+    setChildren((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cleanName = name.trim();
     if (!cleanName) {
       setError('Preencha seu nome completo.');
       return;
+    }
+
+    const cleanChildren = hasChildren
+      ? children
+          .map((c) => ({ name: c.name.trim(), age: Number(c.age) }))
+          .filter((c) => c.name)
+      : [];
+
+    if (hasChildren) {
+      const invalid = cleanChildren.some(
+        (c) => !Number.isInteger(c.age) || c.age < 0 || c.age > 17,
+      );
+      if (cleanChildren.length === 0) {
+        setError('Preencha o nome e a idade de ao menos uma criança, ou desmarque a opção.');
+        return;
+      }
+      if (invalid) {
+        setError('Preencha uma idade válida (0 a 17) para cada criança.');
+        return;
+      }
     }
 
     setStatus('submitting');
@@ -73,6 +112,9 @@ export default function GuestModal({ open, onClose }) {
         setStatus('idle');
         setError('Este nome já consta na lista de convidados confirmados.');
         return;
+      }
+      if (cleanChildren.length > 0) {
+        await addChildrenForGuest(inserted[0].id, cleanChildren);
       }
       markAsConfirmed();
       setStatus('done');
@@ -134,6 +176,56 @@ export default function GuestModal({ open, onClose }) {
                 />
               </div>
             </div>
+
+            <button
+              type="button"
+              className={`guest-modal-children-toggle${hasChildren ? ' guest-modal-children-toggle--active' : ''}`}
+              onClick={() => setHasChildren((prev) => !prev)}
+              aria-pressed={hasChildren}
+            >
+              <span aria-hidden="true">🧒</span> vou levar criança{hasChildren ? 's' : ''}
+            </button>
+
+            {hasChildren && (
+              <div className="guest-modal-children">
+                {children.map((child, index) => (
+                  <div className="guest-modal-child-row" key={index}>
+                    <input
+                      type="text"
+                      className="guest-modal-input"
+                      placeholder="Nome da criança"
+                      value={child.name}
+                      onChange={(e) => updateChildField(index, 'name', e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className="guest-modal-input guest-modal-input--age"
+                      placeholder="Idade"
+                      min="0"
+                      max="17"
+                      value={child.age}
+                      onChange={(e) => updateChildField(index, 'age', e.target.value)}
+                    />
+                    {children.length > 1 && (
+                      <button
+                        type="button"
+                        className="guest-modal-remove"
+                        onClick={() => removeChildField(index)}
+                        aria-label="Remover esta criança"
+                      >
+                        <CloseIcon />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {children.length < MAX_CHILDREN_PER_GUEST && (
+                  <button type="button" className="guest-modal-add" onClick={addChildField}>
+                    + adicionar outra criança
+                  </button>
+                )}
+              </div>
+            )}
 
             {error && <p className="guest-modal-error">{error}</p>}
 

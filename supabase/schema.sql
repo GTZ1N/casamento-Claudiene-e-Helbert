@@ -58,3 +58,36 @@ create policy "Rsvp status can be toggled from the invite site"
   on rsvp_settings for update
   using (true)
   with check (true);
+
+-- Crianças que um convidado leva junto. Até 5 por convidado (checado no
+-- app, não no banco); a idade fica em anos porque é só pra noiva se
+-- organizar (buffet infantil, cadeirinhas etc).
+create table if not exists guest_children (
+  id uuid primary key default gen_random_uuid(),
+  guest_id uuid not null references guests(id) on delete cascade,
+  name text not null,
+  age int not null check (age >= 0 and age <= 17),
+  created_at timestamptz not null default now()
+);
+
+alter table guest_children enable row level security;
+
+create policy "Children are publicly readable"
+  on guest_children for select
+  using (true);
+
+-- Convidado adiciona as crianças dele junto da própria confirmação; a
+-- página admin também insere/edita/exclui por aqui — mesmo modelo de
+-- confiança do resto deste arquivo (sem login real no banco).
+create policy "Anyone can add children"
+  on guest_children for insert
+  with check (true);
+
+create policy "Children can be updated from the invite site"
+  on guest_children for update
+  using (true)
+  with check (true);
+
+create policy "Children can be deleted from the invite site"
+  on guest_children for delete
+  using (true);
