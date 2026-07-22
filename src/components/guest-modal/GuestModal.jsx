@@ -11,21 +11,32 @@ function CloseIcon() {
   );
 }
 
+// Cada convidado só confirma uma vez neste navegador — depois de confirmar,
+// o modal para de mostrar o formulário e passa a exibir só a mensagem de
+// sucesso, mesmo em uma nova visita.
+const CONFIRMED_STORAGE_KEY = 'ch-guest-confirmed';
+
+function hasAlreadyConfirmed() {
+  return localStorage.getItem(CONFIRMED_STORAGE_KEY) === 'true';
+}
+
+function markAsConfirmed() {
+  localStorage.setItem(CONFIRMED_STORAGE_KEY, 'true');
+}
+
 export default function GuestModal({ open, onClose }) {
-  const [names, setNames] = useState(['']);
+  const [name, setName] = useState('');
   const [status, setStatus] = useState('idle'); // idle | submitting | done
   const [error, setError] = useState(null);
-  const [duplicateNames, setDuplicateNames] = useState([]);
   const [rsvpOpen, setRsvpOpen] = useState(null); // null = checking | true | false
   const firstInputRef = useRef(null);
   const titleId = useId();
 
   useEffect(() => {
     if (!open) return undefined;
-    setNames(['']);
-    setStatus('idle');
+    setName('');
+    setStatus(hasAlreadyConfirmed() ? 'done' : 'idle');
     setError(null);
-    setDuplicateNames([]);
     setRsvpOpen(null);
 
     isRsvpOpen()
@@ -46,38 +57,24 @@ export default function GuestModal({ open, onClose }) {
 
   if (!open) return null;
 
-  const updateName = (index, value) => {
-    setNames((prev) => prev.map((n, i) => (i === index ? value : n)));
-  };
-
-  const addField = () => setNames((prev) => [...prev, '']);
-
-  const removeField = (index) => {
-    setNames((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const cleanNames = names.map((n) => n.trim()).filter(Boolean);
-    if (cleanNames.length === 0) {
-      setError('Preencha ao menos um nome completo.');
+    const cleanName = name.trim();
+    if (!cleanName) {
+      setError('Preencha seu nome completo.');
       return;
     }
 
     setStatus('submitting');
     setError(null);
     try {
-      const { inserted, duplicates } = await addGuests(cleanNames);
-      setDuplicateNames(duplicates);
-      if (inserted.length === 0) {
+      const { inserted, duplicates } = await addGuests([cleanName]);
+      if (inserted.length === 0 && duplicates.length > 0) {
         setStatus('idle');
-        setError(
-          duplicates.length === 1
-            ? 'Este nome já consta na lista de convidados confirmados.'
-            : 'Esses nomes já constam na lista de convidados confirmados.',
-        );
+        setError('Este nome já consta na lista de convidados confirmados.');
         return;
       }
+      markAsConfirmed();
       setStatus('done');
     } catch (err) {
       setStatus('idle');
@@ -98,7 +95,16 @@ export default function GuestModal({ open, onClose }) {
           <CloseIcon />
         </button>
 
-        {rsvpOpen === false ? (
+        {status === 'done' ? (
+          <div className="guest-modal-success">
+            <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
+            <p id={titleId} className="guest-modal-success-title">Presença confirmada!</p>
+            <p className="guest-modal-success-note">Aguardamos você!</p>
+            <button type="button" className="guest-modal-submit" onClick={onClose}>
+              fechar
+            </button>
+          </div>
+        ) : rsvpOpen === false ? (
           <div className="guest-modal-success">
             <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
             <p id={titleId} className="guest-modal-success-title">Confirmações encerradas</p>
@@ -110,58 +116,24 @@ export default function GuestModal({ open, onClose }) {
               fechar
             </button>
           </div>
-        ) : status === 'done' ? (
-          <div className="guest-modal-success">
-            <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
-            <p id={titleId} className="guest-modal-success-title">Presença confirmada!</p>
-            <p className="guest-modal-success-note">
-              Obrigado por fazer parte desse momento com a gente.
-            </p>
-            {duplicateNames.length > 0 && (
-              <p className="guest-modal-success-note guest-modal-success-note--muted">
-                ({duplicateNames.length === 1 ? 'um nome' : `${duplicateNames.length} nomes`} já
-                estava{duplicateNames.length === 1 ? '' : 'm'} na lista e não{' '}
-                {duplicateNames.length === 1 ? 'foi duplicado' : 'foram duplicados'})
-              </p>
-            )}
-            <button type="button" className="guest-modal-submit" onClick={onClose}>
-              fechar
-            </button>
-          </div>
         ) : (
           <form className="guest-modal-form" onSubmit={handleSubmit}>
             <p className="section-eyebrow">confirmar presença</p>
             <h2 id={titleId} className="guest-modal-title">Quem vem celebrar com a gente?</h2>
 
             <div className="guest-modal-fields">
-              {names.map((name, index) => (
-                <div className="guest-modal-field" key={index}>
-                  <input
-                    ref={index === 0 ? firstInputRef : undefined}
-                    type="text"
-                    className="guest-modal-input"
-                    placeholder="Nome completo"
-                    value={name}
-                    onChange={(e) => updateName(index, e.target.value)}
-                    autoComplete="name"
-                  />
-                  {names.length > 1 && (
-                    <button
-                      type="button"
-                      className="guest-modal-remove"
-                      onClick={() => removeField(index)}
-                      aria-label="Remover este nome"
-                    >
-                      <CloseIcon />
-                    </button>
-                  )}
-                </div>
-              ))}
+              <div className="guest-modal-field">
+                <input
+                  ref={firstInputRef}
+                  type="text"
+                  className="guest-modal-input"
+                  placeholder="Nome completo"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                />
+              </div>
             </div>
-
-            <button type="button" className="guest-modal-add" onClick={addField}>
-              + adicionar mais uma pessoa
-            </button>
 
             {error && <p className="guest-modal-error">{error}</p>}
 
