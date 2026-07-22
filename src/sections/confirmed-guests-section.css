@@ -138,6 +138,11 @@
   border-radius: 50%;
 }
 
+.confirmed-phone {
+  font-size: 0.85rem;
+  opacity: 0.65;
+}
+
 .confirmed-name {
   flex: 1;
   min-width: 0;

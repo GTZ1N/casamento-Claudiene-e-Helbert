@@ -5,7 +5,7 @@ import {
   deleteGuest,
   listGuests,
   subscribeGuests,
-  updateGuestName,
+  updateGuest,
 } from '../lib/guests';
 import { isRsvpOpen, setRsvpOpen, subscribeRsvpStatus } from '../lib/rsvpStatus';
 import './confirmed-guests-section.css';
@@ -23,6 +23,7 @@ export default function ConfirmedGuestsSection() {
 
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [editingPhone, setEditingPhone] = useState('');
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [rowError, setRowError] = useState(null);
@@ -94,20 +95,23 @@ export default function ConfirmedGuestsSection() {
     setRowError(null);
     setEditingId(guest.id);
     setEditingName(guest.full_name);
+    setEditingPhone(guest.phone || '');
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditingName('');
+    setEditingPhone('');
   };
 
   const saveEdit = async (id) => {
     setSavingId(id);
     setRowError(null);
     try {
-      await updateGuestName(id, editingName);
+      await updateGuest(id, { name: editingName, phone: editingPhone });
       setEditingId(null);
       setEditingName('');
+      setEditingPhone('');
     } catch (err) {
       setRowError(err.message || 'Não foi possível salvar agora.');
     } finally {
@@ -188,6 +192,13 @@ export default function ConfirmedGuestsSection() {
                     onChange={(e) => setEditingName(e.target.value)}
                     autoFocus
                   />
+                  <input
+                    type="tel"
+                    className="confirmed-admin-input confirmed-admin-input--inline"
+                    placeholder="Celular"
+                    value={editingPhone}
+                    onChange={(e) => setEditingPhone(e.target.value)}
+                  />
                   <button
                     type="button"
                     className="confirmed-row-btn"
@@ -209,7 +220,10 @@ export default function ConfirmedGuestsSection() {
               ) : (
                 <>
                   <span className="confirmed-check" aria-hidden="true">&#10003;</span>
-                  <span className="confirmed-name">{guest.full_name}</span>
+                  <span className="confirmed-name">
+                    {guest.full_name}
+                    {guest.phone && <span className="confirmed-phone"> — {guest.phone}</span>}
+                  </span>
                   <button
                     type="button"
                     className="confirmed-row-btn"

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { addGuests } from '../../lib/guests';
+import { confirmGuest } from '../../lib/guests';
 import { addChildrenForGuest, MAX_CHILDREN_PER_GUEST } from '../../lib/children';
 import { isRsvpOpen } from '../../lib/rsvpStatus';
 import './guest-modal.css';
@@ -12,18 +12,7 @@ function CloseIcon() {
   );
 }
 
-// Cada convidado só confirma uma vez neste navegador — depois de confirmar,
-// o modal para de mostrar o formulário e passa a exibir só a mensagem de
-// sucesso, mesmo em uma nova visita.
-const CONFIRMED_STORAGE_KEY = 'ch-guest-confirmed';
-
-function hasAlreadyConfirmed() {
-  return localStorage.getItem(CONFIRMED_STORAGE_KEY) === 'true';
-}
-
-function markAsConfirmed() {
-  localStorage.setItem(CONFIRMED_STORAGE_KEY, 'true');
-}
+const MIN_PHONE_DIGITS = 8;
 
 function emptyChild() {
   return { name: '', age: '' };
@@ -31,6 +20,7 @@ function emptyChild() {
 
 export default function GuestModal({ open, onClose }) {
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [hasChildren, setHasChildren] = useState(false);
   const [children, setChildren] = useState([emptyChild()]);
   const [status, setStatus] = useState('idle'); // idle | submitting | done
@@ -42,9 +32,10 @@ export default function GuestModal({ open, onClose }) {
   useEffect(() => {
     if (!open) return undefined;
     setName('');
+    setPhone('');
     setHasChildren(false);
     setChildren([emptyChild()]);
-    setStatus(hasAlreadyConfirmed() ? 'done' : 'idle');
+    setStatus('idle');
     setError(null);
     setRsvpOpen(null);
 
@@ -84,6 +75,12 @@ export default function GuestModal({ open, onClose }) {
       return;
     }
 
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length < MIN_PHONE_DIGITS) {
+      setError('Preencha um número de celular válido.');
+      return;
+    }
+
     const cleanChildren = hasChildren
       ? children
           .map((c) => ({ name: c.name.trim(), age: Number(c.age) }))
@@ -107,16 +104,10 @@ export default function GuestModal({ open, onClose }) {
     setStatus('submitting');
     setError(null);
     try {
-      const { inserted, duplicates } = await addGuests([cleanName]);
-      if (inserted.length === 0 && duplicates.length > 0) {
-        setStatus('idle');
-        setError('Este nome já consta na lista de convidados confirmados.');
-        return;
-      }
+      const guest = await confirmGuest(cleanName, phone);
       if (cleanChildren.length > 0) {
-        await addChildrenForGuest(inserted[0].id, cleanChildren);
+        await addChildrenForGuest(guest.id, cleanChildren);
       }
-      markAsConfirmed();
       setStatus('done');
     } catch (err) {
       setStatus('idle');
@@ -173,6 +164,16 @@ export default function GuestModal({ open, onClose }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
+                />
+              </div>
+              <div className="guest-modal-field">
+                <input
+                  type="tel"
+                  className="guest-modal-input"
+                  placeholder="Celular (com DDD)"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
                 />
               </div>
             </div>

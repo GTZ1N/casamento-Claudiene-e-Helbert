@@ -10,6 +10,18 @@ create table if not exists guests (
   created_at timestamptz not null default now()
 );
 
+-- Celular obrigatório na confirmação pública (evita "penetra"): impede
+-- duplicado comparando só os últimos 8 dígitos (normalizePhone() no app),
+-- então "31995448631", "995448631" e "95448631" contam como o mesmo número
+-- independente de DDD/nono dígito/como a pessoa digitou.
+alter table guests add column if not exists phone text;
+alter table guests add column if not exists phone_normalized text;
+
+drop index if exists guests_phone_normalized_key;
+create unique index if not exists guests_phone_normalized_key
+  on guests (phone_normalized)
+  where phone_normalized is not null;
+
 alter table guests enable row level security;
 
 -- A lista de confirmados é pública (qualquer visitante do site pode vê-la).
