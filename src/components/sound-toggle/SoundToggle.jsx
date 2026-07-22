@@ -21,7 +21,7 @@ function SpeakerOffIcon() {
   );
 }
 
-const LOOP_START = 20;
+const LOOP_START = 28;
 
 export default function SoundToggle({ src }) {
   const audioRef = useRef(null);

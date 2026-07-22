@@ -7,6 +7,8 @@
 }
 
 .monogram-amp {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.65em;
   color: var(--color-olive-light);
   font-style: italic;
 }

@@ -57,11 +57,27 @@
   color: var(--color-champagne);
 }
 
+.book-amp {
+  font-family: var(--font-script);
+  font-size: 1.15em;
+  color: var(--color-gold-soft);
+}
+
 .book-divider {
   width: 2rem;
   height: 1px;
   margin: 0.5rem 0;
   background: rgba(243, 231, 208, 0.5);
+}
+
+.book-invite-line {
+  margin: 0.3rem 0;
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--color-champagne);
+  opacity: 0.9;
 }
 
 .book-date {
