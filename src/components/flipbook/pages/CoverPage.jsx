@@ -9,8 +9,7 @@ export default function CoverPage() {
         <p className="book-eyebrow">com a bênção de deus e de nossos familiares</p>
         <p className="book-names">
           Claudiene
-          <br />
-          <span className="book-amp">&amp;</span> Helbert
+          <br />e Helbert
         </p>
         <p className="book-invite-line">
           convidam você(s) para celebrar este dia tão especial.

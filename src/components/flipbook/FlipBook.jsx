@@ -35,6 +35,14 @@ export default function FlipBook() {
     setCurrentIndex(e.data);
   }, []);
 
+  const goNext = useCallback(() => {
+    bookRef.current?.pageFlip()?.flipNext();
+  }, []);
+
+  const goPrev = useCallback(() => {
+    bookRef.current?.pageFlip()?.flipPrev();
+  }, []);
+
   return (
     <div className="flipbook-stage">
       <div className="flipbook-backdrop" />
@@ -74,18 +82,38 @@ export default function FlipBook() {
             </Page>
           ))}
         </HTMLFlipBook>
+        </div>
 
         {currentIndex < PAGE_COUNT - 1 && (
-          <span className="flipbook-fold-label flipbook-fold-label--right" aria-hidden="true">
-            puxe aqui
-          </span>
+          <button
+            type="button"
+            className="flipbook-nav flipbook-nav--right"
+            aria-label="Próxima página"
+            onClick={goNext}
+          >
+            <span className="flipbook-fold-label flipbook-fold-label--right" aria-hidden="true">
+              puxe aqui
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         )}
         {currentIndex > 0 && (
-          <span className="flipbook-fold-label flipbook-fold-label--left" aria-hidden="true">
-            puxe aqui
-          </span>
+          <button
+            type="button"
+            className="flipbook-nav flipbook-nav--left"
+            aria-label="Página anterior"
+            onClick={goPrev}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
+            <span className="flipbook-fold-label flipbook-fold-label--left" aria-hidden="true">
+              puxe aqui
+            </span>
+          </button>
         )}
-        </div>
       </div>
       <div className="flipbook-dots">
         {Array.from({ length: PAGE_COUNT }).map((_, i) => (

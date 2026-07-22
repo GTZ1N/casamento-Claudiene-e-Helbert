@@ -57,12 +57,6 @@
   color: var(--color-champagne);
 }
 
-.book-amp {
-  font-family: var(--font-script);
-  font-size: 1.15em;
-  color: var(--color-gold-soft);
-}
-
 .book-divider {
   width: 2rem;
   height: 1px;
