@@ -26,7 +26,7 @@ export default function GiftsSection() {
           </button>
 
           <Link to="/presentes" className="gifts-option-btn gifts-option-btn--outline">
-            <span className="gifts-option-title">Presentear com itens domésticos</span>
+            <span className="gifts-option-title">Presentear com itens da lista</span>
             <span className="gifts-option-sub">escolha um item da nossa lista</span>
           </Link>
         </div>
