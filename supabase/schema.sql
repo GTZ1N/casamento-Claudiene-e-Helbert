@@ -21,3 +21,27 @@ create policy "Guests are publicly readable"
 create policy "Anyone can confirm attendance"
   on guests for insert
   with check (true);
+
+-- Liga/desliga a confirmação de presença. Única linha (id = 1), controlada
+-- pela noiva na página privada /lista-ch-confirmados. Sem sistema de login
+-- nesse site (mesmo modelo de confiança das policies acima), então a
+-- proteção real é o link da página ser secreto, não a policy do banco.
+create table if not exists rsvp_settings (
+  id int primary key default 1,
+  is_open boolean not null default true,
+  constraint rsvp_settings_single_row check (id = 1)
+);
+
+insert into rsvp_settings (id, is_open) values (1, true)
+  on conflict (id) do nothing;
+
+alter table rsvp_settings enable row level security;
+
+create policy "Rsvp status is publicly readable"
+  on rsvp_settings for select
+  using (true);
+
+create policy "Rsvp status can be toggled from the invite site"
+  on rsvp_settings for update
+  using (true)
+  with check (true);

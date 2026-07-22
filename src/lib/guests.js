@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from './supabase';
+import { isRsvpOpen } from './rsvpStatus';
 
 const listeners = new Set();
 
@@ -40,6 +41,10 @@ export async function listGuests() {
 export async function addGuests(names) {
   if (!isSupabaseConfigured) {
     throw new Error('A confirmação de presença ainda está sendo preparada. Volte em breve!');
+  }
+
+  if (!(await isRsvpOpen())) {
+    throw new Error('A lista de confirmação de presença já está fechada.');
   }
 
   const cleanNames = names.map((name) => name.trim()).filter(Boolean);

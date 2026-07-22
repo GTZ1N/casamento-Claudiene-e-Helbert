@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { listGuests, subscribeGuests } from '../lib/guests';
+import { isRsvpOpen, setRsvpOpen, subscribeRsvpStatus } from '../lib/rsvpStatus';
 import './confirmed-guests-section.css';
 
 export default function ConfirmedGuestsSection() {
   const ref = useScrollReveal({ targets: '.confirmed-reveal', y: 22, stagger: 0.1 });
   const [guests, setGuests] = useState([]);
   const [status, setStatus] = useState('loading'); // loading | ready | error
+  const [rsvpOpen, setRsvpOpenState] = useState(null); // null = checking | true | false
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,13 +26,38 @@ export default function ConfirmedGuestsSection() {
       }
     };
 
+    const loadRsvpStatus = () => {
+      isRsvpOpen()
+        .then((open) => {
+          if (!cancelled) setRsvpOpenState(open);
+        })
+        .catch(() => {
+          if (!cancelled) setRsvpOpenState(null);
+        });
+    };
+
     load();
-    const unsubscribe = subscribeGuests(load);
+    loadRsvpStatus();
+    const unsubscribeGuests = subscribeGuests(load);
+    const unsubscribeRsvp = subscribeRsvpStatus(loadRsvpStatus);
     return () => {
       cancelled = true;
-      unsubscribe();
+      unsubscribeGuests();
+      unsubscribeRsvp();
     };
   }, []);
+
+  const handleToggle = async () => {
+    setToggling(true);
+    try {
+      await setRsvpOpen(!rsvpOpen);
+      setRsvpOpenState(!rsvpOpen);
+    } catch {
+      // silencioso — o botão simplesmente não muda de estado; tentar de novo.
+    } finally {
+      setToggling(false);
+    }
+  };
 
   if (status === 'error') return null;
 
@@ -39,6 +67,22 @@ export default function ConfirmedGuestsSection() {
         <p className="section-eyebrow">quem já confirmou</p>
         <h2 className="section-title">Convidados confirmados</h2>
         <span className="section-divider" />
+
+        {rsvpOpen !== null && (
+          <div className="confirmed-admin-toggle">
+            <p className="confirmed-admin-status">
+              Confirmações estão {rsvpOpen ? 'abertas' : 'fechadas'}.
+            </p>
+            <button
+              type="button"
+              className="confirmed-admin-btn"
+              onClick={handleToggle}
+              disabled={toggling}
+            >
+              {toggling ? 'aplicando…' : rsvpOpen ? 'Fechar lista' : 'Abrir lista'}
+            </button>
+          </div>
+        )}
       </div>
 
       {status === 'ready' && guests.length === 0 && (

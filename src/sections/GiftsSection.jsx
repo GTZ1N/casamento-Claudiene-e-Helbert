@@ -15,8 +15,8 @@ export default function GiftsSection() {
         <h2 className="section-title">Lista de presentes</h2>
         <span className="section-divider" />
         <p className="gifts-intro">
-          Sua presença já é o maior presente. Mas se quiser nos ajudar a montar a nova casa,
-          escolha uma das formas abaixo.
+          Sua presença já é o nosso maior presente, mas se quiser nos presentear escolha uma
+          das formas abaixo.
         </p>
 
         <div className="gifts-options">

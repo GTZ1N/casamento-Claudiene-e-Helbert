@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { addGuests } from '../../lib/guests';
+import { isRsvpOpen } from '../../lib/rsvpStatus';
 import './guest-modal.css';
 
 function CloseIcon() {
@@ -15,6 +16,7 @@ export default function GuestModal({ open, onClose }) {
   const [status, setStatus] = useState('idle'); // idle | submitting | done
   const [error, setError] = useState(null);
   const [duplicateNames, setDuplicateNames] = useState([]);
+  const [rsvpOpen, setRsvpOpen] = useState(null); // null = checking | true | false
   const firstInputRef = useRef(null);
   const titleId = useId();
 
@@ -24,6 +26,12 @@ export default function GuestModal({ open, onClose }) {
     setStatus('idle');
     setError(null);
     setDuplicateNames([]);
+    setRsvpOpen(null);
+
+    isRsvpOpen()
+      .then(setRsvpOpen)
+      .catch(() => setRsvpOpen(true));
+
     const focusTimer = setTimeout(() => firstInputRef.current?.focus(), 50);
 
     const onKeyDown = (e) => {
@@ -90,7 +98,19 @@ export default function GuestModal({ open, onClose }) {
           <CloseIcon />
         </button>
 
-        {status === 'done' ? (
+        {rsvpOpen === false ? (
+          <div className="guest-modal-success">
+            <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
+            <p id={titleId} className="guest-modal-success-title">Confirmações encerradas</p>
+            <p className="guest-modal-success-note">
+              A lista de confirmação de presença já está fechada. Qualquer dúvida, fale
+              direto com a gente.
+            </p>
+            <button type="button" className="guest-modal-submit" onClick={onClose}>
+              fechar
+            </button>
+          </div>
+        ) : status === 'done' ? (
           <div className="guest-modal-success">
             <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
             <p id={titleId} className="guest-modal-success-title">Presença confirmada!</p>
@@ -145,7 +165,11 @@ export default function GuestModal({ open, onClose }) {
 
             {error && <p className="guest-modal-error">{error}</p>}
 
-            <button type="submit" className="guest-modal-submit" disabled={status === 'submitting'}>
+            <button
+              type="submit"
+              className="guest-modal-submit"
+              disabled={status === 'submitting' || rsvpOpen === null}
+            >
               {status === 'submitting' ? 'confirmando…' : 'confirmar presença'}
             </button>
           </form>

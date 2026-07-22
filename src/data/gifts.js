@@ -21,15 +21,6 @@ export const gifts = [
   { id: 'gift-65', name: 'Assinatura de streaming pra maratonar juntos', brand: 'Contribuição carinhosa', price: 125, category: GIFT_CATEGORIES.DIVERSAO, icon: '🍿', featured: true },
   { id: 'gift-66', name: 'Café da manhã de casal recém-casado', brand: 'Contribuição carinhosa', price: 175, category: GIFT_CATEGORIES.DIVERSAO, icon: '☕', featured: true },
 
-  { id: 'gift-01', name: 'Kit Cobre Leito Casal Colcha 3 Peças Boutis Estampada Dupla Face', brand: 'Bem Casa', price: 91.9, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-02', name: 'Cobre Leito Colcha Camili Super King 3 pçs Matelado Dupla Face', brand: 'Bem Me Quer Enxovais', price: 140.9, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-03', name: 'Cobertor Casal Queen Alaska Sherpa e Manta Flanel (Marinho)', brand: 'Bia Enxovais', price: 189.89, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-04', name: 'Kit Cobre Leito Colcha 3 Peças Dupla Face Isabel Areia Boutis King', brand: 'Bem Casa', price: 99.9, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-05', name: 'Cobertor Casal Dupla Face com Manta e Pele de Carneiro (Sherpa) 2,20m x 2,40m', brand: 'Borgon', price: 179.9, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-06', name: 'Kit Cobre Leito Colcha Cama Casal Queen 3 Peças Essencialle Algodão 160 Fios Estampado', brand: 'Enxovais Victoria Bordados', price: 206.04, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-07', name: 'Cobertor com Manga Manta Sherpa Microfibra Quentinho Aveludado', brand: 'Casa Dona', price: 186.19, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-08', name: 'Cobertor Casal Jolitex/Dyuri Ternille Gualdaquivir 180x220cm', brand: 'Jolitex', price: 129.9, category: GIFT_CATEGORIES.ENXOVAL },
-  { id: 'gift-09', name: 'Cobertor Casal Jolitex/Dyuri Ternille Gualdaquivir 180x220cm', brand: 'Jolitex', price: 129.9, category: GIFT_CATEGORIES.ENXOVAL },
   { id: 'gift-10', name: 'Relógio de Parede Grande 40cm Luxuoso', brand: 'Intempo Design', price: 69.9, category: GIFT_CATEGORIES.DECOR },
   { id: 'gift-11', name: 'Quadro Decorativo Leão de Judá Religioso Grande', brand: 'AY', price: 78.9, category: GIFT_CATEGORIES.DECOR },
   { id: 'gift-12', name: 'Sofá-Cama Casal 3 Lugares Premium A2 Suede Azul Turquesa', brand: 'Mobly', price: 1305.67, category: GIFT_CATEGORIES.MOVEIS },
@@ -81,4 +72,7 @@ export const gifts = [
   { id: 'gift-58', name: 'Cooktop 5 Bocas a Gás Supreme com Queimador Tripla Chama Mesa de Vidro', brand: 'Dako', price: 689.9, category: GIFT_CATEGORIES.ELETRO },
   { id: 'gift-59', name: 'Panela de Pressão Elétrica 5L Pratic Cook', brand: 'Mondial', price: 449.99, category: GIFT_CATEGORIES.COZINHA },
   { id: 'gift-60', name: 'Air Fryer Oven 12L 4 em 1 1800W', brand: 'Philco', price: 799.9, category: GIFT_CATEGORIES.COZINHA },
+  { id: 'gift-67', name: 'Fogão 5 Bocas de Piso Acendimento Automático', brand: 'Consul', price: 1299.0, category: GIFT_CATEGORIES.ELETRO },
+  { id: 'gift-68', name: 'Forno de Embutir Elétrico 44L', brand: 'Fischer', price: 899.0, category: GIFT_CATEGORIES.ELETRO },
+  { id: 'gift-69', name: 'Micro-ondas 30L Espelhado', brand: 'Electrolux', price: 649.0, category: GIFT_CATEGORIES.ELETRO },
 ];

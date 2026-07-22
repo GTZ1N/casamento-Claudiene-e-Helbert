@@ -9,9 +9,9 @@ import GallerySection from './sections/GallerySection';
 import DressCodeSection from './sections/DressCodeSection';
 import GuestManualSection from './sections/GuestManualSection';
 import GiftsSection from './sections/GiftsSection';
-import ConfirmedGuestsSection from './sections/ConfirmedGuestsSection';
 import FooterSection from './sections/FooterSection';
 import GiftsPage from './pages/gifts-page/GiftsPage';
+import ConfirmedGuestsPage from './pages/confirmed-guests-page/ConfirmedGuestsPage';
 import SoundToggle from './components/sound-toggle/SoundToggle';
 import { useLenis } from './hooks/useLenis';
 import { scrollToId } from './lib/lenis-instance';
@@ -63,7 +63,6 @@ function HomePage() {
         fit="contain"
       />
       <GiftsSection />
-      <ConfirmedGuestsSection />
       <FooterSection />
     </main>
   );
@@ -77,6 +76,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/presentes" element={<GiftsPage />} />
+        <Route path="/lista-ch-confirmados" element={<ConfirmedGuestsPage />} />
       </Routes>
     </>
   );
