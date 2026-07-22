@@ -24,7 +24,7 @@ export default function GiftsPage() {
   return (
     <main className="gifts-page">
       <div className="gifts-page-header">
-        <Link to="/" className="gifts-page-back">
+        <Link to="/#presentes" className="gifts-page-back">
           ← voltar ao convite
         </Link>
         <p className="section-eyebrow">para nos presentear</p>

@@ -3,7 +3,6 @@ import HTMLFlipBook from 'react-pageflip';
 import CoverPage from './pages/CoverPage';
 import IconsPage from './pages/IconsPage';
 import ClosingPage from './pages/ClosingPage';
-import SoundToggle from '../sound-toggle/SoundToggle';
 import './flip-page.css';
 import './flipbook.css';
 
@@ -47,7 +46,6 @@ export default function FlipBook() {
     <div className="flipbook-stage">
       <div className="flipbook-backdrop" />
       <div className="flipbook-frame-wrap">
-        <SoundToggle src="/audio/still-the-one.mp3" />
         <div className="flipbook-frame" data-lenis-prevent>
         <HTMLFlipBook
           ref={bookRef}

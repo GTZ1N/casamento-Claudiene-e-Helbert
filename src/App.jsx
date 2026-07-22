@@ -12,15 +12,23 @@ import GiftsSection from './sections/GiftsSection';
 import ConfirmedGuestsSection from './sections/ConfirmedGuestsSection';
 import FooterSection from './sections/FooterSection';
 import GiftsPage from './pages/gifts-page/GiftsPage';
+import SoundToggle from './components/sound-toggle/SoundToggle';
 import { useLenis } from './hooks/useLenis';
+import { scrollToId } from './lib/lenis-instance';
 import './styles/sections.css';
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
+    if (hash) {
+      const id = hash.slice(1);
+      const timer = setTimeout(() => scrollToId(id), 300);
+      return () => clearTimeout(timer);
+    }
     window.scrollTo(0, 0);
-  }, [pathname]);
+    return undefined;
+  }, [pathname, hash]);
 
   return null;
 }
@@ -65,6 +73,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+      <SoundToggle src="/audio/still-the-one.mp3" />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/presentes" element={<GiftsPage />} />
