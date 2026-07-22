@@ -146,7 +146,7 @@ export default function ConfirmedChildrenSection() {
             className="confirmed-admin-input confirmed-admin-input--age"
             placeholder="Idade"
             min="0"
-            max="17"
+            max="12"
             value={newAge}
             onChange={(e) => setNewAge(e.target.value)}
           />
@@ -180,7 +180,7 @@ export default function ConfirmedChildrenSection() {
                     type="number"
                     className="confirmed-admin-input confirmed-admin-input--age"
                     min="0"
-                    max="17"
+                    max="12"
                     value={editingAge}
                     onChange={(e) => setEditingAge(e.target.value)}
                   />

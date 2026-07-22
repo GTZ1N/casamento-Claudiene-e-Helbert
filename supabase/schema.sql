@@ -66,7 +66,7 @@ create table if not exists guest_children (
   id uuid primary key default gen_random_uuid(),
   guest_id uuid not null references guests(id) on delete cascade,
   name text not null,
-  age int not null check (age >= 0 and age <= 17),
+  age int not null check (age >= 0 and age <= 12),
   created_at timestamptz not null default now()
 );
 

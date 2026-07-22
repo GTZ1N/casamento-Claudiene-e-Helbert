@@ -92,14 +92,14 @@ export default function GuestModal({ open, onClose }) {
 
     if (hasChildren) {
       const invalid = cleanChildren.some(
-        (c) => !Number.isInteger(c.age) || c.age < 0 || c.age > 17,
+        (c) => !Number.isInteger(c.age) || c.age < 0 || c.age > 12,
       );
       if (cleanChildren.length === 0) {
         setError('Preencha o nome e a idade de ao menos uma criança, ou desmarque a opção.');
         return;
       }
       if (invalid) {
-        setError('Preencha uma idade válida (0 a 17) para cada criança.');
+        setError('Preencha uma idade válida (0 a 12) para cada criança.');
         return;
       }
     }
@@ -202,7 +202,7 @@ export default function GuestModal({ open, onClose }) {
                       className="guest-modal-input guest-modal-input--age"
                       placeholder="Idade"
                       min="0"
-                      max="17"
+                      max="12"
                       value={child.age}
                       onChange={(e) => updateChildField(index, 'age', e.target.value)}
                     />

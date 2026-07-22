@@ -59,7 +59,7 @@ export async function addChildrenForGuest(guestId, children) {
 export async function addChildToGuest(guestId, name, age) {
   const cleanName = name.trim();
   if (!cleanName) throw new Error('O nome da criança não pode ficar vazio.');
-  if (!Number.isInteger(age) || age < 0 || age > 17) {
+  if (!Number.isInteger(age) || age < 0 || age > 12) {
     throw new Error('Idade inválida.');
   }
 
@@ -78,7 +78,7 @@ export async function addChildToGuest(guestId, name, age) {
 export async function updateChild(id, { name, age }) {
   const cleanName = name.trim();
   if (!cleanName) throw new Error('O nome da criança não pode ficar vazio.');
-  if (!Number.isInteger(age) || age < 0 || age > 17) {
+  if (!Number.isInteger(age) || age < 0 || age > 12) {
     throw new Error('Idade inválida.');
   }
 
