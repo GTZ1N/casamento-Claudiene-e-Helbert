@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import OfficialGuestListSection from '../../sections/OfficialGuestListSection';
 import ConfirmedGuestsSection from '../../sections/ConfirmedGuestsSection';
 import ConfirmedChildrenSection from '../../sections/ConfirmedChildrenSection';
 import AdminLogin from '../../components/admin-login/AdminLogin';
@@ -14,6 +15,7 @@ export default function ConfirmedGuestsPage() {
 
   return (
     <main>
+      <OfficialGuestListSection />
       <ConfirmedGuestsSection />
       <ConfirmedChildrenSection />
       <button

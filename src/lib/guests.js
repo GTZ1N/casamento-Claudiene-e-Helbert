@@ -1,5 +1,6 @@
 import { getSupabase, isSupabaseConfigured } from './supabase';
-import { isRsvpOpen } from './rsvpStatus';
+import { isRsvpOpen, setRsvpOpen } from './rsvpStatus';
+import { getGuestListStats } from './officialGuestList';
 
 const listeners = new Set();
 
@@ -34,64 +35,90 @@ export async function listGuests() {
   const supabase = await getSupabase();
   const { data, error } = await supabase
     .from('guests')
-    .select('id, full_name, phone')
+    .select('id, full_name, full_name_normalized, phone')
     .order('created_at', { ascending: true });
 
   if (error) throw error;
   return data;
 }
 
-// Confirmação pública: nome e celular são obrigatórios e ambos precisam
-// ser inéditos na lista. A checagem client-side dá uma mensagem específica
-// (qual dos dois já existe); o unique index em phone_normalized no banco é
-// o guarda real contra corrida entre dois envios simultâneos.
-export async function confirmGuest(name, phone) {
+function rsvpError(code, message) {
+  const err = new Error(message);
+  err.code = code;
+  return err;
+}
+
+// Confirmação pública: o convidado só digita o nome, que precisa bater
+// (após normalização) com alguém na lista oficial (guest_list_official) e
+// ainda não ter confirmado. O unique em guests.full_name_normalized é quem
+// garante, mesmo sob corrida entre dois envios simultâneos, que nomes
+// duplicados na lista oficial (ex. duas "Janaina") só geram UMA confirmação.
+export async function confirmGuestByName(name) {
   if (!isSupabaseConfigured) {
-    throw new Error('A confirmação de presença ainda está sendo preparada. Volte em breve!');
+    throw rsvpError(
+      'CLOSED',
+      'A confirmação de presença ainda está sendo preparada. Volte em breve!',
+    );
   }
 
   if (!(await isRsvpOpen())) {
-    throw new Error('A lista de confirmação de presença já está fechada.');
+    throw rsvpError('CLOSED', 'A lista de confirmação de presença já está fechada.');
   }
 
   const cleanName = name.trim();
-  const cleanPhone = phone.trim();
   const normalizedName = normalizeName(cleanName);
-  const normalizedPhone = normalizePhone(cleanPhone);
 
   const supabase = await getSupabase();
-  const { data: existing, error: fetchError } = await supabase
-    .from('guests')
-    .select('full_name_normalized, phone_normalized');
-  if (fetchError) throw fetchError;
 
-  if (existing.some((g) => g.full_name_normalized === normalizedName)) {
-    throw new Error('Este nome já consta na lista de convidados confirmados.');
+  const { data: officialMatches, error: officialError } = await supabase
+    .from('guest_list_official')
+    .select('id')
+    .eq('full_name_normalized', normalizedName)
+    .limit(1);
+  if (officialError) throw officialError;
+  if (!officialMatches || officialMatches.length === 0) {
+    throw rsvpError('NOT_FOUND', 'Pessoa não encontrada.');
   }
-  if (normalizedPhone && existing.some((g) => g.phone_normalized === normalizedPhone)) {
-    throw new Error('Este número de celular já confirmou presença.');
+
+  const { data: existingConfirmation, error: existingError } = await supabase
+    .from('guests')
+    .select('id')
+    .eq('full_name_normalized', normalizedName)
+    .limit(1);
+  if (existingError) throw existingError;
+  if (existingConfirmation && existingConfirmation.length > 0) {
+    throw rsvpError(
+      'ALREADY_CONFIRMED',
+      'Sua presença já está confirmada, te aguardamos lá!',
+    );
   }
 
   const { data, error } = await supabase
     .from('guests')
-    .insert({
-      full_name: cleanName,
-      full_name_normalized: normalizedName,
-      phone: cleanPhone,
-      phone_normalized: normalizedPhone,
-    })
+    .insert({ full_name: cleanName, full_name_normalized: normalizedName })
     .select('id, full_name')
     .single();
 
   if (error) {
     if (error.code === '23505') {
-      throw new Error('Este nome ou celular já consta na lista de convidados confirmados.');
+      throw rsvpError('ALREADY_CONFIRMED', 'Sua presença já está confirmada, te aguardamos lá!');
     }
     throw error;
   }
 
   notifyGuestsChanged();
+  await closeRsvpIfEveryoneConfirmed();
   return data;
+}
+
+// After each confirmation, if every unique name on the official list is now
+// confirmed, close public RSVP automatically (the admin can still reopen it
+// manually from the ADM page — setRsvpOpen there is untouched).
+async function closeRsvpIfEveryoneConfirmed() {
+  const { confirmed, total, isOpen } = await getGuestListStats();
+  if (total > 0 && confirmed >= total && isOpen) {
+    await setRsvpOpen(false);
+  }
 }
 
 // Admin-only additions (from the private /lista-ch-confirmados page) skip

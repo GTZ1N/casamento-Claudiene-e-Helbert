@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { confirmGuest } from '../../lib/guests';
-import { addChildrenForGuest, MAX_CHILDREN_PER_GUEST } from '../../lib/children';
+import { confirmGuestByName } from '../../lib/guests';
 import { isRsvpOpen } from '../../lib/rsvpStatus';
+import { getGuestListStats } from '../../lib/officialGuestList';
 import './guest-modal.css';
 
 function CloseIcon() {
@@ -12,36 +12,35 @@ function CloseIcon() {
   );
 }
 
-const MIN_PHONE_DIGITS = 8;
-
-function emptyChild() {
-  return { name: '', age: '' };
-}
-
 export default function GuestModal({ open, onClose }) {
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [hasChildren, setHasChildren] = useState(false);
-  const [children, setChildren] = useState([emptyChild()]);
-  const [status, setStatus] = useState('idle'); // idle | submitting | done
+  const [status, setStatus] = useState('idle'); // idle | submitting | done | already-confirmed
   const [error, setError] = useState(null);
-  const [rsvpOpen, setRsvpOpen] = useState(null); // null = checking | true | false
+  const [closedInfo, setClosedInfo] = useState(null); // null = checking | { allConfirmed: boolean }
   const firstInputRef = useRef(null);
   const titleId = useId();
 
   useEffect(() => {
     if (!open) return undefined;
     setName('');
-    setPhone('');
-    setHasChildren(false);
-    setChildren([emptyChild()]);
     setStatus('idle');
     setError(null);
-    setRsvpOpen(null);
+    setClosedInfo(undefined);
 
     isRsvpOpen()
-      .then(setRsvpOpen)
-      .catch(() => setRsvpOpen(true));
+      .then(async (isOpen) => {
+        if (isOpen) {
+          setClosedInfo(null);
+          return;
+        }
+        try {
+          const stats = await getGuestListStats();
+          setClosedInfo({ allConfirmed: stats.total > 0 && stats.confirmed >= stats.total });
+        } catch {
+          setClosedInfo({ allConfirmed: false });
+        }
+      })
+      .catch(() => setClosedInfo(null));
 
     const focusTimer = setTimeout(() => firstInputRef.current?.focus(), 50);
 
@@ -57,16 +56,6 @@ export default function GuestModal({ open, onClose }) {
 
   if (!open) return null;
 
-  const updateChildField = (index, field, value) => {
-    setChildren((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
-  };
-
-  const addChildField = () =>
-    setChildren((prev) => (prev.length < MAX_CHILDREN_PER_GUEST ? [...prev, emptyChild()] : prev));
-
-  const removeChildField = (index) =>
-    setChildren((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cleanName = name.trim();
@@ -75,43 +64,22 @@ export default function GuestModal({ open, onClose }) {
       return;
     }
 
-    const phoneDigits = phone.replace(/\D/g, '');
-    if (phoneDigits.length < MIN_PHONE_DIGITS) {
-      setError('Preencha um número de celular válido.');
-      return;
-    }
-
-    const cleanChildren = hasChildren
-      ? children
-          .map((c) => ({ name: c.name.trim(), age: Number(c.age) }))
-          .filter((c) => c.name)
-      : [];
-
-    if (hasChildren) {
-      const invalid = cleanChildren.some(
-        (c) => !Number.isInteger(c.age) || c.age < 0 || c.age > 12,
-      );
-      if (cleanChildren.length === 0) {
-        setError('Preencha o nome e a idade de ao menos uma criança, ou desmarque a opção.');
-        return;
-      }
-      if (invalid) {
-        setError('Preencha uma idade válida (0 a 12) para cada criança.');
-        return;
-      }
-    }
-
     setStatus('submitting');
     setError(null);
     try {
-      const guest = await confirmGuest(cleanName, phone);
-      if (cleanChildren.length > 0) {
-        await addChildrenForGuest(guest.id, cleanChildren);
-      }
+      await confirmGuestByName(cleanName);
       setStatus('done');
     } catch (err) {
       setStatus('idle');
-      setError(err.message || 'Não foi possível confirmar agora. Tente novamente.');
+      if (err.code === 'ALREADY_CONFIRMED') {
+        setStatus('already-confirmed');
+      } else if (err.code === 'NOT_FOUND') {
+        setError('Pessoa não encontrada 😕');
+      } else if (err.code === 'CLOSED') {
+        setClosedInfo({ allConfirmed: false });
+      } else {
+        setError(err.message || 'Não foi possível confirmar agora. Tente novamente.');
+      }
     }
   };
 
@@ -131,19 +99,32 @@ export default function GuestModal({ open, onClose }) {
         {status === 'done' ? (
           <div className="guest-modal-success">
             <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
-            <p id={titleId} className="guest-modal-success-title">Presença confirmada!</p>
+            <p id={titleId} className="guest-modal-success-title">Presença confirmada! ❤️</p>
             <p className="guest-modal-success-note">Aguardamos você!</p>
             <button type="button" className="guest-modal-submit" onClick={onClose}>
               fechar
             </button>
           </div>
-        ) : rsvpOpen === false ? (
+        ) : status === 'already-confirmed' ? (
           <div className="guest-modal-success">
             <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
-            <p id={titleId} className="guest-modal-success-title">Confirmações encerradas</p>
+            <p id={titleId} className="guest-modal-success-title">
+              Sua presença já está confirmada, te aguardamos lá! 🤵👰
+            </p>
+            <button type="button" className="guest-modal-submit" onClick={onClose}>
+              fechar
+            </button>
+          </div>
+        ) : closedInfo ? (
+          <div className="guest-modal-success">
+            <span className="guest-modal-success-ornament" aria-hidden="true">&#10047;</span>
+            <p id={titleId} className="guest-modal-success-title">
+              {closedInfo.allConfirmed ? 'Todos já confirmaram sua presença!' : 'Confirmações encerradas'}
+            </p>
             <p className="guest-modal-success-note">
-              A lista de confirmação de presença já está fechada. Qualquer dúvida, fale
-              direto com a gente.
+              {closedInfo.allConfirmed
+                ? 'Nos vemos no grande dia! 🤵👰❤️'
+                : 'A lista de confirmação de presença já está fechada. Qualquer dúvida, fale direto com a gente.'}
             </p>
             <button type="button" className="guest-modal-submit" onClick={onClose}>
               fechar
@@ -166,74 +147,14 @@ export default function GuestModal({ open, onClose }) {
                   autoComplete="name"
                 />
               </div>
-              <div className="guest-modal-field">
-                <input
-                  type="tel"
-                  className="guest-modal-input"
-                  placeholder="Celular (com DDD)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  autoComplete="tel"
-                />
-              </div>
             </div>
-
-            <button
-              type="button"
-              className={`guest-modal-children-toggle${hasChildren ? ' guest-modal-children-toggle--active' : ''}`}
-              onClick={() => setHasChildren((prev) => !prev)}
-              aria-pressed={hasChildren}
-            >
-              <span aria-hidden="true">🧒</span> vou levar criança{hasChildren ? 's' : ''}
-            </button>
-
-            {hasChildren && (
-              <div className="guest-modal-children">
-                {children.map((child, index) => (
-                  <div className="guest-modal-child-row" key={index}>
-                    <input
-                      type="text"
-                      className="guest-modal-input"
-                      placeholder="Nome da criança"
-                      value={child.name}
-                      onChange={(e) => updateChildField(index, 'name', e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      className="guest-modal-input guest-modal-input--age"
-                      placeholder="Idade"
-                      min="0"
-                      max="12"
-                      value={child.age}
-                      onChange={(e) => updateChildField(index, 'age', e.target.value)}
-                    />
-                    {children.length > 1 && (
-                      <button
-                        type="button"
-                        className="guest-modal-remove"
-                        onClick={() => removeChildField(index)}
-                        aria-label="Remover esta criança"
-                      >
-                        <CloseIcon />
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {children.length < MAX_CHILDREN_PER_GUEST && (
-                  <button type="button" className="guest-modal-add" onClick={addChildField}>
-                    + adicionar outra criança
-                  </button>
-                )}
-              </div>
-            )}
 
             {error && <p className="guest-modal-error">{error}</p>}
 
             <button
               type="submit"
               className="guest-modal-submit"
-              disabled={status === 'submitting' || rsvpOpen === null}
+              disabled={status === 'submitting' || closedInfo === undefined}
             >
               {status === 'submitting' ? 'confirmando…' : 'confirmar presença'}
             </button>

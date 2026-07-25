@@ -117,3 +117,47 @@ drop policy if exists "Children can be deleted from the invite site" on guest_ch
 create policy "Children can be deleted from the invite site"
   on guest_children for delete
   using (true);
+
+-- Lista oficial de convidados esperados (fonte da verdade pra quem pode
+-- confirmar presença). Duplicatas são esperadas de propósito (mesmo nome
+-- pode aparecer 2x, convidado por grupos diferentes) — o app trata nomes
+-- duplicados como uma única identidade de confirmação via o unique já
+-- existente em guests.full_name_normalized, então esta tabela não precisa
+-- (e não deve) ter unique aqui.
+create table if not exists guest_list_official (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  full_name_normalized text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists guest_list_official_normalized_idx
+  on guest_list_official (full_name_normalized);
+
+alter table guest_list_official enable row level security;
+
+-- Leitura pública: o form de RSVP precisa checar se o nome digitado está
+-- na lista antes de deixar confirmar.
+drop policy if exists "Official guest list is publicly readable" on guest_list_official;
+create policy "Official guest list is publicly readable"
+  on guest_list_official for select
+  using (true);
+
+-- Escrita: ação da página admin (login em /lista-ch-confirmados), mesmo
+-- modelo de confiança do resto deste arquivo — a proteção real é o login
+-- da página, não a policy do banco.
+drop policy if exists "Official guest list can be managed from the invite site" on guest_list_official;
+create policy "Official guest list can be managed from the invite site"
+  on guest_list_official for insert
+  with check (true);
+
+drop policy if exists "Official guest list can be updated from the invite site" on guest_list_official;
+create policy "Official guest list can be updated from the invite site"
+  on guest_list_official for update
+  using (true)
+  with check (true);
+
+drop policy if exists "Official guest list can be deleted from the invite site" on guest_list_official;
+create policy "Official guest list can be deleted from the invite site"
+  on guest_list_official for delete
+  using (true);
