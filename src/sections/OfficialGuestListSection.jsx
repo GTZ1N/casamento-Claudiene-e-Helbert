@@ -14,7 +14,7 @@ import './official-guest-list-section.css';
 
 export default function OfficialGuestListSection() {
   const [guests, setGuests] = useState([]);
-  const [confirmedNames, setConfirmedNames] = useState(new Set());
+  const [confirmedCountByName, setConfirmedCountByName] = useState(new Map());
   const [stats, setStats] = useState(null);
   const [status, setStatus] = useState('loading'); // loading | ready | error
 
@@ -40,7 +40,11 @@ export default function OfficialGuestListSection() {
         ]);
         if (cancelled) return;
         setGuests(officialGuests);
-        setConfirmedNames(new Set(confirmed.map((g) => g.full_name_normalized)));
+        const counts = new Map();
+        for (const g of confirmed) {
+          counts.set(g.full_name_normalized, (counts.get(g.full_name_normalized) || 0) + 1);
+        }
+        setConfirmedCountByName(counts);
         setStats(guestStats);
         setStatus('ready');
       } catch {
@@ -105,9 +109,9 @@ export default function OfficialGuestListSection() {
     let confirmText = 'Tem certeza que deseja remover este convidado?';
     try {
       const impact = await describeRemovalImpact(guest.id);
-      if (impact.isLastOccurrence && impact.isConfirmed) {
+      if (impact.willExceedCapacity) {
         confirmText +=
-          '\n\nEste convidado já confirmou presença — remover também vai apagar o registro de confirmação relacionado a ele.';
+          '\n\nJá existe mais gente confirmada com esse nome do que vagas vão sobrar na lista — remover também vai apagar a confirmação mais recente feita com esse nome.';
       }
     } catch {
       // silencioso — segue com o texto genérico se a checagem de impacto falhar.
@@ -177,9 +181,14 @@ export default function OfficialGuestListSection() {
 
       {status === 'ready' && guests.length > 0 && (
         <ul className="official-list">
-          {guests.map((guest) => {
-            const isConfirmed = confirmedNames.has(guest.full_name_normalized);
-            return (
+          {(() => {
+            const seenCountByName = new Map();
+            return guests.map((guest) => {
+              const seen = seenCountByName.get(guest.full_name_normalized) || 0;
+              seenCountByName.set(guest.full_name_normalized, seen + 1);
+              const capacityUsed = confirmedCountByName.get(guest.full_name_normalized) || 0;
+              const isConfirmed = seen < capacityUsed;
+              return (
               <li className="official-item" key={guest.id}>
                 {editingId === guest.id ? (
                   <>
@@ -240,8 +249,9 @@ export default function OfficialGuestListSection() {
                   </>
                 )}
               </li>
-            );
-          })}
+              );
+            });
+          })()}
         </ul>
       )}
     </section>

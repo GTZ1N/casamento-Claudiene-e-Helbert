@@ -161,3 +161,63 @@ drop policy if exists "Official guest list can be deleted from the invite site" 
 create policy "Official guest list can be deleted from the invite site"
   on guest_list_official for delete
   using (true);
+
+-- Nomes duplicados na lista oficial (ex. duas "Janaina" convidadas por
+-- grupos diferentes) precisam de UMA VAGA de confirmação cada — a primeira
+-- pessoa a digitar "Janaina" não pode consumir a vaga da segunda Janaina
+-- real. Isso não dá mais pra garantir só com um unique constraint (que
+-- permitiria só 1 confirmação por nome no total); por isso vira uma
+-- função de banco que conta, atomicamente, quantas ocorrências desse nome
+-- existem na lista oficial (capacidade) vs. quantas já confirmaram
+-- (ocupação), e só insere se ainda houver vaga livre.
+alter table guests drop constraint if exists guests_full_name_normalized_key;
+
+create or replace function confirm_guest_by_name(p_name text)
+returns guests
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_normalized text;
+  v_official_count int;
+  v_confirmed_count int;
+  v_is_open boolean;
+  v_result guests;
+begin
+  v_normalized := lower(regexp_replace(trim(p_name), '\s+', ' ', 'g'));
+
+  select is_open into v_is_open from rsvp_settings where id = 1;
+  if v_is_open is null or not v_is_open then
+    raise exception 'CLOSED';
+  end if;
+
+  -- Serializa confirmações concorrentes do mesmo nome, pra duas pessoas
+  -- confirmando "Janaina" ao mesmo tempo não estourarem as vagas.
+  perform pg_advisory_xact_lock(hashtext(v_normalized));
+
+  select count(*) into v_official_count
+  from guest_list_official
+  where full_name_normalized = v_normalized;
+
+  if v_official_count = 0 then
+    raise exception 'NOT_FOUND';
+  end if;
+
+  select count(*) into v_confirmed_count
+  from guests
+  where full_name_normalized = v_normalized;
+
+  if v_confirmed_count >= v_official_count then
+    raise exception 'ALREADY_CONFIRMED';
+  end if;
+
+  insert into guests (full_name, full_name_normalized)
+  values (trim(p_name), v_normalized)
+  returning * into v_result;
+
+  return v_result;
+end;
+$$;
+
+grant execute on function confirm_guest_by_name(text) to anon, authenticated;

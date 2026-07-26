@@ -60,22 +60,26 @@ export async function updateOfficialGuest(id, name) {
   notifyOfficialGuestListChanged();
 }
 
-// Before deleting a row, tells the caller whether this is the last
-// occurrence of that name in the official list and whether that identity
-// already has a confirmation — so the admin UI can warn before the action
-// is irreversible.
+// Each occurrence of a name on the official list is one confirmation slot
+// (see confirm_guest_by_name in supabase/schema.sql). Before deleting a row,
+// tells the caller whether removing it will drop capacity below the number
+// of people who already confirmed under that name — so the admin UI can
+// warn before the action is irreversible.
 export async function describeRemovalImpact(id) {
   const [officialGuests, confirmedGuests] = await Promise.all([listOfficialGuests(), listGuests()]);
   const target = officialGuests.find((g) => g.id === id);
-  if (!target) return { isLastOccurrence: false, isConfirmed: false };
+  if (!target) return { willExceedCapacity: false, isConfirmed: false };
 
-  const isLastOccurrence =
-    officialGuests.filter((g) => g.full_name_normalized === target.full_name_normalized).length === 1;
-  const isConfirmed = confirmedGuests.some(
+  const remainingSlots =
+    officialGuests.filter((g) => g.full_name_normalized === target.full_name_normalized).length - 1;
+  const confirmedCount = confirmedGuests.filter(
     (g) => g.full_name_normalized === target.full_name_normalized,
-  );
+  ).length;
 
-  return { isLastOccurrence, isConfirmed };
+  return {
+    willExceedCapacity: confirmedCount > remainingSlots,
+    isConfirmed: confirmedCount > 0,
+  };
 }
 
 export async function deleteOfficialGuest(id) {
@@ -83,22 +87,30 @@ export async function deleteOfficialGuest(id) {
 
   const officialGuests = await listOfficialGuests();
   const target = officialGuests.find((g) => g.id === id);
-  const isLastOccurrence =
-    !!target &&
-    officialGuests.filter((g) => g.full_name_normalized === target.full_name_normalized).length === 1;
 
   const { error } = await supabase.from('guest_list_official').delete().eq('id', id);
   if (error) throw error;
 
-  // The removed name no longer has an official identity backing it — clean
-  // up the matching confirmation too, so it can't be counted or shown as
-  // confirmed with nothing on the invite list to justify it.
-  if (isLastOccurrence) {
-    const { error: confirmedDeleteError } = await supabase
-      .from('guests')
-      .delete()
-      .eq('full_name_normalized', target.full_name_normalized);
-    if (confirmedDeleteError) throw confirmedDeleteError;
+  if (target) {
+    // Removing a slot can leave more people confirmed under this name than
+    // there are official occurrences left — trim the most recent
+    // confirmation(s) down to the new capacity so the numbers stay honest.
+    const remainingSlots = officialGuests.filter(
+      (g) => g.full_name_normalized === target.full_name_normalized,
+    ).length - 1;
+
+    // listGuests() is already ordered by created_at ascending, so the tail
+    // of this filtered array is the most recently confirmed.
+    const confirmedForName = (await listGuests()).filter(
+      (g) => g.full_name_normalized === target.full_name_normalized,
+    );
+
+    const excess = confirmedForName.length - Math.max(remainingSlots, 0);
+    if (excess > 0) {
+      const idsToRemove = confirmedForName.slice(-excess).map((g) => g.id);
+      const { error: trimError } = await supabase.from('guests').delete().in('id', idsToRemove);
+      if (trimError) throw trimError;
+    }
   }
 
   notifyOfficialGuestListChanged();
@@ -111,11 +123,33 @@ export async function getGuestListStats() {
     isRsvpOpen(),
   ]);
 
-  const uniqueNames = new Set(officialGuests.map((g) => g.full_name_normalized));
-  const confirmedNames = new Set(confirmedGuests.map((g) => g.full_name_normalized));
+  // Total counts every row on the invite list (duplicates included, e.g.
+  // two "Janaina" = 2), matching what's shown/edited in the admin list.
+  // Confirmed counts how many of those slots are occupied, capped per name
+  // at how many occurrences that name actually has (extra confirmations
+  // beyond capacity shouldn't happen via confirm_guest_by_name, but admin
+  // manual additions could in theory create more — cap keeps the math sane).
+  const officialCountByName = new Map();
+  for (const g of officialGuests) {
+    officialCountByName.set(
+      g.full_name_normalized,
+      (officialCountByName.get(g.full_name_normalized) || 0) + 1,
+    );
+  }
 
-  const total = uniqueNames.size;
-  const confirmed = [...uniqueNames].filter((name) => confirmedNames.has(name)).length;
+  const confirmedCountByName = new Map();
+  for (const g of confirmedGuests) {
+    confirmedCountByName.set(
+      g.full_name_normalized,
+      (confirmedCountByName.get(g.full_name_normalized) || 0) + 1,
+    );
+  }
+
+  const total = officialGuests.length;
+  let confirmed = 0;
+  for (const [name, capacity] of officialCountByName) {
+    confirmed += Math.min(confirmedCountByName.get(name) || 0, capacity);
+  }
   const pending = total - confirmed;
   const percent = total > 0 ? Math.round((confirmed / total) * 1000) / 10 : 0;
 

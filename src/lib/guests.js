@@ -1,5 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from './supabase';
-import { isRsvpOpen, setRsvpOpen } from './rsvpStatus';
+import { setRsvpOpen } from './rsvpStatus';
 import { getGuestListStats } from './officialGuestList';
 
 const listeners = new Set();
@@ -48,11 +48,15 @@ function rsvpError(code, message) {
   return err;
 }
 
-// Confirmação pública: o convidado só digita o nome, que precisa bater
-// (após normalização) com alguém na lista oficial (guest_list_official) e
-// ainda não ter confirmado. O unique em guests.full_name_normalized é quem
-// garante, mesmo sob corrida entre dois envios simultâneos, que nomes
-// duplicados na lista oficial (ex. duas "Janaina") só geram UMA confirmação.
+// Confirmação pública: o convidado só digita o nome. Nomes duplicados na
+// lista oficial (ex. duas "Janaina" convidadas por grupos diferentes) têm
+// uma VAGA de confirmação cada — a primeira pessoa a digitar "Janaina"
+// ocupa a vaga 1, a segunda ocupa a vaga 2, só a terceira tentativa recebe
+// "já confirmado". Toda a lógica (achar na lista oficial + checar vagas
+// livres + inserir) roda atomicamente dentro da função de banco
+// confirm_guest_by_name (supabase/schema.sql), com um advisory lock por
+// nome normalizado — assim duas confirmações simultâneas do mesmo nome não
+// estouram as vagas disponíveis.
 export async function confirmGuestByName(name) {
   if (!isSupabaseConfigured) {
     throw rsvpError(
@@ -61,46 +65,20 @@ export async function confirmGuestByName(name) {
     );
   }
 
-  if (!(await isRsvpOpen())) {
-    throw rsvpError('CLOSED', 'A lista de confirmação de presença já está fechada.');
-  }
-
   const cleanName = name.trim();
-  const normalizedName = normalizeName(cleanName);
-
   const supabase = await getSupabase();
 
-  const { data: officialMatches, error: officialError } = await supabase
-    .from('guest_list_official')
-    .select('id')
-    .eq('full_name_normalized', normalizedName)
-    .limit(1);
-  if (officialError) throw officialError;
-  if (!officialMatches || officialMatches.length === 0) {
-    throw rsvpError('NOT_FOUND', 'Pessoa não encontrada.');
-  }
-
-  const { data: existingConfirmation, error: existingError } = await supabase
-    .from('guests')
-    .select('id')
-    .eq('full_name_normalized', normalizedName)
-    .limit(1);
-  if (existingError) throw existingError;
-  if (existingConfirmation && existingConfirmation.length > 0) {
-    throw rsvpError(
-      'ALREADY_CONFIRMED',
-      'Sua presença já está confirmada, te aguardamos lá!',
-    );
-  }
-
-  const { data, error } = await supabase
-    .from('guests')
-    .insert({ full_name: cleanName, full_name_normalized: normalizedName })
-    .select('id, full_name')
-    .single();
+  const { data, error } = await supabase.rpc('confirm_guest_by_name', { p_name: cleanName });
 
   if (error) {
-    if (error.code === '23505') {
+    const reason = error.message || '';
+    if (reason.includes('CLOSED')) {
+      throw rsvpError('CLOSED', 'A lista de confirmação de presença já está fechada.');
+    }
+    if (reason.includes('NOT_FOUND')) {
+      throw rsvpError('NOT_FOUND', 'Pessoa não encontrada.');
+    }
+    if (reason.includes('ALREADY_CONFIRMED')) {
       throw rsvpError('ALREADY_CONFIRMED', 'Sua presença já está confirmada, te aguardamos lá!');
     }
     throw error;
