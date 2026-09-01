@@ -1,6 +1,4 @@
 import { getSupabase, isSupabaseConfigured } from './supabase';
-import { setRsvpOpen } from './rsvpStatus';
-import { getGuestListStats } from './officialGuestList';
 
 const listeners = new Set();
 
@@ -89,18 +87,7 @@ export async function confirmGuestByName(name, message) {
   }
 
   notifyGuestsChanged();
-  await closeRsvpIfEveryoneConfirmed();
   return data;
-}
-
-// After each confirmation, if every unique name on the official list is now
-// confirmed, close public RSVP automatically (the admin can still reopen it
-// manually from the ADM page — setRsvpOpen there is untouched).
-async function closeRsvpIfEveryoneConfirmed() {
-  const { confirmed, total, isOpen } = await getGuestListStats();
-  if (total > 0 && confirmed >= total && isOpen) {
-    await setRsvpOpen(false);
-  }
 }
 
 // Admin-only additions (from the private /lista-ch-confirmados page) skip
