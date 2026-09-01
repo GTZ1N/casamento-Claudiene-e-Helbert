@@ -27,11 +27,13 @@ export default function OfficialGuestListSection() {
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [rowError, setRowError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
+      setStatus((s) => (s === 'ready' ? s : 'loading'));
       try {
         const [officialGuests, confirmed, guestStats] = await Promise.all([
           listOfficialGuests(),
@@ -62,7 +64,7 @@ export default function OfficialGuestListSection() {
       unsubscribeGuests();
       unsubscribeRsvp();
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -129,7 +131,27 @@ export default function OfficialGuestListSection() {
     }
   };
 
-  if (status === 'error') return null;
+  if (status === 'error') {
+    return (
+      <section className="section official-guest-list-section">
+        <div className="section-inner">
+          <p className="section-eyebrow">painel da lista</p>
+          <h2 className="section-title">Lista oficial de convidados</h2>
+          <span className="section-divider" />
+          <p className="confirmed-admin-error">
+            Não foi possível carregar a lista agora. Verifique sua internet e tente de novo.
+          </p>
+          <button
+            type="button"
+            className="confirmed-admin-btn"
+            onClick={() => setReloadKey((k) => k + 1)}
+          >
+            tentar novamente
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section official-guest-list-section">

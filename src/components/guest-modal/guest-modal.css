@@ -110,6 +110,16 @@
   box-shadow: 0 0 0 3px rgba(229, 131, 162, 0.18);
 }
 
+.guest-modal-field--message {
+  align-items: flex-start;
+}
+
+.guest-modal-textarea {
+  resize: none;
+  font-family: var(--font-serif);
+  line-height: 1.4;
+}
+
 .guest-modal-remove {
   display: flex;
   align-items: center;

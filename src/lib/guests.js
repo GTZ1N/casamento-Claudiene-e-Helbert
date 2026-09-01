@@ -35,7 +35,7 @@ export async function listGuests() {
   const supabase = await getSupabase();
   const { data, error } = await supabase
     .from('guests')
-    .select('id, full_name, full_name_normalized, phone')
+    .select('id, full_name, full_name_normalized, phone, message')
     .order('created_at', { ascending: true });
 
   if (error) throw error;
@@ -57,7 +57,7 @@ function rsvpError(code, message) {
 // confirm_guest_by_name (supabase/schema.sql), com um advisory lock por
 // nome normalizado — assim duas confirmações simultâneas do mesmo nome não
 // estouram as vagas disponíveis.
-export async function confirmGuestByName(name) {
+export async function confirmGuestByName(name, message) {
   if (!isSupabaseConfigured) {
     throw rsvpError(
       'CLOSED',
@@ -66,9 +66,13 @@ export async function confirmGuestByName(name) {
   }
 
   const cleanName = name.trim();
+  const cleanMessage = message?.trim() || null;
   const supabase = await getSupabase();
 
-  const { data, error } = await supabase.rpc('confirm_guest_by_name', { p_name: cleanName });
+  const { data, error } = await supabase.rpc('confirm_guest_by_name', {
+    p_name: cleanName,
+    p_message: cleanMessage,
+  });
 
   if (error) {
     const reason = error.message || '';

@@ -23,6 +23,8 @@ export function useScrollReveal({ targets = ':scope > *', y = 32, stagger = 0.12
         duration: 1.1,
         ease: 'power3.out',
         stagger,
+        force3D: false,
+        clearProps: 'transform,opacity,willChange',
         scrollTrigger: {
           trigger: el,
           start,

@@ -17,6 +17,11 @@ create table if not exists guests (
 alter table guests add column if not exists phone text;
 alter table guests add column if not exists phone_normalized text;
 
+-- Mensagem opcional que o convidado deixa pro casal na hora de confirmar
+-- presença. Só aparece na página admin (/lista-ch-confirmados) — nunca é
+-- exibida publicamente.
+alter table guests add column if not exists message text;
+
 drop index if exists guests_phone_normalized_key;
 create unique index if not exists guests_phone_normalized_key
   on guests (phone_normalized)
@@ -172,7 +177,12 @@ create policy "Official guest list can be deleted from the invite site"
 -- (ocupação), e só insere se ainda houver vaga livre.
 alter table guests drop constraint if exists guests_full_name_normalized_key;
 
-create or replace function confirm_guest_by_name(p_name text)
+-- create or replace com uma lista de parâmetros diferente cria uma função
+-- SEPARADA (overload) em vez de substituir — sem isso as duas convivem e o
+-- app pode acabar chamando a versão antiga sem mensagem.
+drop function if exists confirm_guest_by_name(text);
+
+create or replace function confirm_guest_by_name(p_name text, p_message text default null)
 returns guests
 language plpgsql
 security definer
@@ -212,12 +222,51 @@ begin
     raise exception 'ALREADY_CONFIRMED';
   end if;
 
-  insert into guests (full_name, full_name_normalized)
-  values (trim(p_name), v_normalized)
+  insert into guests (full_name, full_name_normalized, message)
+  values (trim(p_name), v_normalized, nullif(trim(p_message), ''))
   returning * into v_result;
 
   return v_result;
 end;
 $$;
 
-grant execute on function confirm_guest_by_name(text) to anon, authenticated;
+grant execute on function confirm_guest_by_name(text, text) to anon, authenticated;
+
+-- Pedidos de presente da lista (fluxo Mercado Pago em src/pages/gifts-page).
+-- Criado pela edge function create-mp-preference (com a service role, não
+-- pelo cliente anon) já com status 'pending' e o nome de quem presenteou;
+-- a edge function mp-webhook atualiza o status para 'approved'/'rejected'
+-- quando o Mercado Pago notifica o pagamento de verdade. O Pix de valor
+-- livre (PixModal) não passa por aqui — não há como confirmar via API se
+-- uma transferência Pix direta foi feita.
+create table if not exists gift_orders (
+  id uuid primary key default gen_random_uuid(),
+  gift_id text not null,
+  gift_name text not null,
+  price numeric not null,
+  giver_name text not null,
+  giver_message text,
+  mp_preference_id text,
+  mp_payment_id text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- alter/add pois a tabela já pode existir de uma rodada anterior deste
+-- arquivo (create table if not exists não adiciona colunas novas sozinho).
+alter table gift_orders add column if not exists giver_message text;
+
+create index if not exists gift_orders_status_idx on gift_orders (status);
+
+alter table gift_orders enable row level security;
+
+-- Mesmo modelo de confiança do resto deste arquivo: a leitura fica exposta
+-- pela policy do banco, mas a proteção real de "só a noiva vê" é o login da
+-- página /lista-ch-confirmados, não RLS. Escrita só acontece via edge
+-- function com a service role (que ignora RLS), então não existe policy de
+-- insert/update pública aqui de propósito.
+drop policy if exists "Gift orders are readable from the invite site" on gift_orders;
+create policy "Gift orders are readable from the invite site"
+  on gift_orders for select
+  using (true);

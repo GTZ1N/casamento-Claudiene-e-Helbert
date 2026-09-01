@@ -14,6 +14,7 @@ function CloseIcon() {
 
 export default function GuestModal({ open, onClose }) {
   const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
   const [status, setStatus] = useState('idle'); // idle | submitting | done | already-confirmed
   const [error, setError] = useState(null);
   const [closedInfo, setClosedInfo] = useState(null); // null = checking | { allConfirmed: boolean }
@@ -23,6 +24,7 @@ export default function GuestModal({ open, onClose }) {
   useEffect(() => {
     if (!open) return undefined;
     setName('');
+    setMessage('');
     setStatus('idle');
     setError(null);
     setClosedInfo(undefined);
@@ -67,7 +69,7 @@ export default function GuestModal({ open, onClose }) {
     setStatus('submitting');
     setError(null);
     try {
-      await confirmGuestByName(cleanName);
+      await confirmGuestByName(cleanName, message);
       setStatus('done');
     } catch (err) {
       setStatus('idle');
@@ -145,6 +147,17 @@ export default function GuestModal({ open, onClose }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
+                />
+              </div>
+
+              <div className="guest-modal-field guest-modal-field--message">
+                <textarea
+                  className="guest-modal-input guest-modal-textarea"
+                  placeholder="Deixe uma mensagem pro casal"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={3}
+                  maxLength={500}
                 />
               </div>
             </div>

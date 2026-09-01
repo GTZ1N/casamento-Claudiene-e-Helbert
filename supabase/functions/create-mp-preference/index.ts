@@ -18,8 +18,10 @@ Deno.serve(async (req) => {
   }
 
   let giftId: string | undefined;
+  let giverName: string | undefined;
+  let giverMessage: string | undefined;
   try {
-    ({ giftId } = await req.json());
+    ({ giftId, giverName, giverMessage } = await req.json());
   } catch {
     return new Response(JSON.stringify({ error: 'invalid json body' }), {
       status: 400,
@@ -35,6 +37,14 @@ Deno.serve(async (req) => {
     });
   }
 
+  const cleanGiverName = giverName?.trim();
+  if (!cleanGiverName) {
+    return new Response(JSON.stringify({ error: 'giverName is required' }), {
+      status: 400,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  }
+
   const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
   if (!accessToken) {
     return new Response(JSON.stringify({ error: 'MP_ACCESS_TOKEN not configured' }), {
@@ -42,6 +52,46 @@ Deno.serve(async (req) => {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceRoleKey) {
+    return new Response(JSON.stringify({ error: 'supabase service credentials not configured' }), {
+      status: 500,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Grava o pedido ANTES de criar a preferência, com a service role (a
+  // policy de insert em gift_orders é intencionalmente fechada pro cliente
+  // anon — só esta função grava). O id vira o external_reference que o
+  // mp-webhook usa pra achar de volta esta linha quando o pagamento cair.
+  const orderInsertResponse = await fetch(`${supabaseUrl}/rest/v1/gift_orders`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({
+      gift_id: giftId,
+      gift_name: gift.name,
+      price: gift.price,
+      giver_name: cleanGiverName,
+      giver_message: giverMessage?.trim() || null,
+    }),
+  });
+
+  if (!orderInsertResponse.ok) {
+    const detail = await orderInsertResponse.text();
+    return new Response(JSON.stringify({ error: 'failed to record gift order', detail }), {
+      status: 502,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const [order] = await orderInsertResponse.json();
 
   const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:5173';
 
@@ -68,6 +118,8 @@ Deno.serve(async (req) => {
       },
       auto_return: 'approved',
       statement_descriptor: 'CASAMENTO C&H',
+      external_reference: order.id,
+      notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
     }),
   });
 
@@ -80,6 +132,19 @@ Deno.serve(async (req) => {
   }
 
   const preference = await mpResponse.json();
+
+  // Guarda o id da preferência pra referência/debug — não é usado pelo
+  // webhook (que casa por external_reference), então uma falha aqui não é
+  // crítica; só loga e segue.
+  await fetch(`${supabaseUrl}/rest/v1/gift_orders?id=eq.${order.id}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ mp_preference_id: preference.id }),
+  }).catch((err) => console.error('failed to store mp_preference_id', err));
 
   return new Response(JSON.stringify({ initPoint: preference.init_point }), {
     status: 200,

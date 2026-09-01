@@ -118,11 +118,16 @@
 
 .confirmed-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.55rem;
+  padding: 0.3rem 0;
   font-family: var(--font-serif);
   font-size: 1rem;
   color: var(--color-ink-soft);
+}
+
+.confirmed-item .confirmed-check {
+  margin-top: 0.15rem;
 }
 
 .confirmed-check {
@@ -143,12 +148,27 @@
   opacity: 0.65;
 }
 
-.confirmed-name {
+.confirmed-name-block {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
+  gap: 0.2rem;
+}
+
+.confirmed-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.confirmed-message {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-ink-soft);
+  opacity: 0.75;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .confirmed-row-btn {

@@ -27,11 +27,13 @@ export default function ConfirmedGuestsSection() {
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [rowError, setRowError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
+      setStatus((s) => (s === 'ready' ? s : 'loading'));
       try {
         const data = await listGuests();
         if (!cancelled) {
@@ -62,7 +64,7 @@ export default function ConfirmedGuestsSection() {
       unsubscribeGuests();
       unsubscribeRsvp();
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleToggle = async () => {
     setToggling(true);
@@ -131,7 +133,29 @@ export default function ConfirmedGuestsSection() {
     }
   };
 
-  if (status === 'error') return null;
+  if (status === 'error') {
+    return (
+      <section className="section confirmed-guests-section" ref={ref}>
+        <div className="section-inner confirmed-reveal">
+          <p className="section-eyebrow">quem já confirmou</p>
+          <h2 className="section-title">Convidados confirmados</h2>
+          <span className="section-divider" />
+          <p className="confirmed-admin-error">
+            Não foi possível carregar a lista agora. Verifique sua internet e tente de novo.
+          </p>
+          <div className="confirmed-admin-toggle">
+            <button
+              type="button"
+              className="confirmed-admin-btn"
+              onClick={() => setReloadKey((k) => k + 1)}
+            >
+              tentar novamente
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section confirmed-guests-section" ref={ref}>
@@ -220,9 +244,14 @@ export default function ConfirmedGuestsSection() {
               ) : (
                 <>
                   <span className="confirmed-check" aria-hidden="true">&#10003;</span>
-                  <span className="confirmed-name">
-                    {guest.full_name}
-                    {guest.phone && <span className="confirmed-phone"> — {guest.phone}</span>}
+                  <span className="confirmed-name-block">
+                    <span className="confirmed-name">
+                      {guest.full_name}
+                      {guest.phone && <span className="confirmed-phone"> — {guest.phone}</span>}
+                    </span>
+                    {guest.message && (
+                      <span className="confirmed-message">&#8220;{guest.message}&#8221;</span>
+                    )}
                   </span>
                   <button
                     type="button"

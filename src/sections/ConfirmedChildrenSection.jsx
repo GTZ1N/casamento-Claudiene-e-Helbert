@@ -22,11 +22,13 @@ export default function ConfirmedChildrenSection() {
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [rowError, setRowError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
+      setStatus((s) => (s === 'ready' ? s : 'loading'));
       try {
         const data = await listAllChildren();
         if (!cancelled) {
@@ -56,7 +58,7 @@ export default function ConfirmedChildrenSection() {
       unsubscribeChildren();
       unsubscribeGuests();
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -112,7 +114,29 @@ export default function ConfirmedChildrenSection() {
     }
   };
 
-  if (status === 'error') return null;
+  if (status === 'error') {
+    return (
+      <section className="section confirmed-guests-section" ref={ref}>
+        <div className="section-inner confirmed-reveal">
+          <p className="section-eyebrow">quem vem com criança</p>
+          <h2 className="section-title">Crianças confirmadas</h2>
+          <span className="section-divider" />
+          <p className="confirmed-admin-error">
+            Não foi possível carregar agora. Verifique sua internet e tente de novo.
+          </p>
+          <div className="confirmed-admin-toggle">
+            <button
+              type="button"
+              className="confirmed-admin-btn"
+              onClick={() => setReloadKey((k) => k + 1)}
+            >
+              tentar novamente
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section confirmed-guests-section" ref={ref}>
